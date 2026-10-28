@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/shared/components/layout/PageHeader';
+import Card from '@/shared/components/layout/Card';
 import { Button, DataTable, KpiCard, KpiGrid } from '@/shared/components/ui';
 import type { PendingVerificationItem, DefaulterItem } from '../types/monitoring.types';
 import {
@@ -246,53 +247,57 @@ export const CollectionMonitoring: React.FC = () => {
         </div>
       </div>
 
-      {/* SECTION 1: PENDING AT VERIFICATION / CORRECTION TABLE (No Card) */}
-      <DataTable
-        caption="Submissions Pending at Verification / Correction"
-        data={INITIAL_PENDING_LIST}
-        columns={pendingColumns}
-        rowKey={(r) => r.id}
-        searchPlaceholder="Search pending institutions..."
-      />
+      {/* SECTION 1: PENDING AT VERIFICATION / CORRECTION TABLE inside Card */}
+      <Card title="Submissions Pending at Verification / Correction">
+        <DataTable
+          caption="Submissions Pending at Verification / Correction"
+          data={INITIAL_PENDING_LIST}
+          columns={pendingColumns}
+          rowKey={(r) => r.id}
+          searchPlaceholder="Search pending institutions..."
+        />
+      </Card>
 
-      {/* SECTION 2: DEFAULTER LIST TABLE (No Card) */}
-      <DataTable
-        caption="Defaulting Institutions (Missed Due Date)"
-        data={INITIAL_DEFAULTER_LIST}
-        columns={defaulterColumns}
-        rowKey={(r) => r.id}
-        searchPlaceholder="Search defaulters by name or AISHE..."
-        cardActions={
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="warning"
-              size="sm"
-              icon={<Send size={13} />}
-              className="!bg-[#f59f0a] hover:!bg-[#d97706] text-white border-none shadow-xs"
-              onClick={() => handleSendReminder('selected')}
-              disabled={selectedDefaulterIds.length === 0}
-            >
-              Send Reminder to Selected ({selectedDefaulterIds.length})
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              icon={<Bell size={13} />}
-              onClick={() => handleSendReminder('all')}
-            >
-              Send Reminder to All Pending Defaulters
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              icon={<Download size={13} />}
-              onClick={() => toast.success('Exporting defaulter list to Excel / PDF...')}
-            >
-              Export Report
-            </Button>
-          </div>
-        }
-      />
+      {/* SECTION 2: DEFAULTER LIST TABLE inside Card */}
+      <Card title="Defaulting Institutions (Missed Due Date)">
+        <DataTable
+          caption="Defaulting Institutions (Missed Due Date)"
+          data={INITIAL_DEFAULTER_LIST}
+          columns={defaulterColumns}
+          rowKey={(r) => r.id}
+          searchPlaceholder="Search defaulters by name or AISHE..."
+          cardActions={
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="warning"
+                size="sm"
+                icon={<Send size={13} />}
+                className="!bg-[#f59f0a] hover:!bg-[#d97706] text-white border-none shadow-xs"
+                onClick={() => handleSendReminder('selected')}
+                disabled={selectedDefaulterIds.length === 0}
+              >
+                Send Reminder to Selected ({selectedDefaulterIds.length})
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                icon={<Bell size={13} />}
+                onClick={() => handleSendReminder('all')}
+              >
+                Send Reminder to All Pending Defaulters
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                icon={<Download size={13} />}
+                onClick={() => toast.success('Exporting defaulter list to Excel / PDF...')}
+              >
+                Export Report
+              </Button>
+            </div>
+          }
+        />
+      </Card>
     </div>
   );
 };

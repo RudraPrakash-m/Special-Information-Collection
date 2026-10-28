@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/shared/components/layout/PageHeader';
+import Card from '@/shared/components/layout/Card';
 import { Button, DataTable, Modal, Tabs, type TabItem } from '@/shared/components/ui';
 import {
   INITIAL_COLLECTIONS,
@@ -259,51 +260,53 @@ export const ManageCollections: React.FC = () => {
         breadcrumbs={[{ label: 'Manage Collections' }]}
       />
 
-      <DataTable
-        caption="Departmental Information Collections"
-        data={filteredData}
-        columns={columns}
-        rowKey={(r) => r.id}
-        searchPlaceholder="Search collection title, survey name, or ID..."
-        cardActions={
-          <div className="w-full">
-            <div className="flex flex-wrap items-center justify-between gap-4 pb-3.5 border-b border-border -mt-1 -mx-5 px-5">
-              <Tabs
-                tabs={statusTabs}
-                activeTab={statusFilter}
-                onChange={setStatusFilter}
-                variant="pills"
-              />
+      <Card title="Departmental Information Collections">
+        <DataTable
+          caption="Departmental Information Collections"
+          data={filteredData}
+          columns={columns}
+          rowKey={(r) => r.id}
+          searchPlaceholder="Search collection title, survey name, or ID..."
+          cardActions={
+            <div className="w-full">
+              <div className="flex flex-wrap items-center justify-between gap-4 pb-3.5 border-b border-border -mt-1 -mx-5 px-5">
+                <Tabs
+                  tabs={statusTabs}
+                  activeTab={statusFilter}
+                  onChange={setStatusFilter}
+                  variant="pills"
+                />
 
-              <Button
-                variant="primary"
-                size="sm"
-                icon={<Plus size={16} />}
-                onClick={() => navigate('/information-collection/create-collection')}
-              >
-                Create New Collection
-              </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<Plus size={16} />}
+                  onClick={() => navigate('/information-collection/create-collection')}
+                >
+                  Create New Collection
+                </Button>
+              </div>
             </div>
-          </div>
-        }
-        filters={
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
-              Type:
-            </label>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="ui-field !h-8 text-xs py-0 px-2 min-w-[140px] rounded-md"
-            >
-              <option value="all">All Types</option>
-              <option value="institution">Institution-specific</option>
-              <option value="scheme">Scheme-specific</option>
-              <option value="activity">Activity-specific</option>
-            </select>
-          </div>
-        }
-      />
+          }
+          filters={
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                Type:
+              </label>
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="ui-field !h-8 text-xs py-0 px-2 min-w-[140px] rounded-md"
+              >
+                <option value="all">All Types</option>
+                <option value="institution">Institution-specific</option>
+                <option value="scheme">Scheme-specific</option>
+                <option value="activity">Activity-specific</option>
+              </select>
+            </div>
+          }
+        />
+      </Card>
 
       {/* 1. VIEW SUMMARY MODAL */}
       {selectedCollection && (

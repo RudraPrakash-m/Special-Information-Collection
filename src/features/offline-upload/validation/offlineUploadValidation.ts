@@ -6,6 +6,7 @@ export interface OfflineUploadInput {
   collectionId?: string;
   excelFile?: File | null;
   scannedLetter?: File | null;
+  letterRef?: string;
 }
 
 export const validateOfflineUpload = (
@@ -25,4 +26,3 @@ export const validateOfflineUpload = (
 
   return { isValid: true };
 };
-

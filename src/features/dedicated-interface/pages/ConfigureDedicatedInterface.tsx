@@ -677,16 +677,18 @@ export const ConfigureDedicatedInterface: React.FC = () => {
         </div>
       </Card>
 
-      {/* Configured Dedicated Interfaces Table (No Card) */}
-      <DataTable
-        caption="Configured Dedicated Interfaces"
-        data={interfaces}
-        columns={tableColumns}
-        rowKey={(r) => r.id}
-        searchPlaceholder="Search interface, collection, or slug..."
-        emptyTitle="No Dedicated Interfaces Configured"
-        emptyDescription="Use the form above to configure a dedicated slug, instructions, and download formats for any collection."
-      />
+      {/* Configured Dedicated Interfaces Table inside Card */}
+      <Card title="Configured Dedicated Interfaces">
+        <DataTable
+          caption="Configured Dedicated Interfaces"
+          data={interfaces}
+          columns={tableColumns}
+          rowKey={(r) => r.id}
+          searchPlaceholder="Search interface, collection, or slug..."
+          emptyTitle="No Dedicated Interfaces Configured"
+          emptyDescription="Use the form above to configure a dedicated slug, instructions, and download formats for any collection."
+        />
+      </Card>
     </div>
   );
 };

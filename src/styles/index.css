@@ -164,3 +164,36 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     margin: 0;
     overflow: hidden;
 }
+
+
+/* ==========================================================================
+   Card + Table Integration
+   Allows <Card> component to wrap tables (<DataTable>) seamlessly just like forms:
+   - Preserves CardHeader (title, divider, and saffron accent)
+   - Preserves standard CardBody padding
+   - Drops redundant outer box-in-box duplicate border
+   - Enforces crisp, clean table border (.dt-root) and corner rounding
+   ========================================================================== */
+.ui-card:has(.dt-box) > .ui-card__header,
+.ui-card:has(.dt-root) > .ui-card__header {
+    display: flex !important;
+}
+
+.ui-card:has(.dt-box) > .ui-card__body,
+.ui-card:has(.dt-root) > .ui-card__body {
+    padding: var(--card-p, 1.25rem) !important;
+}
+
+.ui-card .dt-box {
+    border: 0 !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+.ui-card .dt-root {
+    border: 1px solid var(--table-border, #f0e2cf) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04) !important;
+}

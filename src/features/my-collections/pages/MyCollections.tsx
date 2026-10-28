@@ -426,24 +426,26 @@ export const MyCollections: React.FC = () => {
           </div>
         </Card>
       ) : (
-        /* MY COLLECTIONS DATA TABLE */
-        <DataTable
-          caption="Assigned Information Collections"
-          data={filteredItems}
-          columns={columns}
-          rowKey={(r) => r.id}
-          searchPlaceholder="Search assigned collections..."
-          cardActions={
-            <div className="w-full">
-              <Tabs
-                tabs={statusTabs}
-                activeTab={activeTab}
-                onChange={setActiveTab}
-                variant="pills"
-              />
-            </div>
-          }
-        />
+        /* MY COLLECTIONS DATA TABLE inside Card */
+        <Card title="Assigned Information Collections">
+          <DataTable
+            caption="Assigned Information Collections"
+            data={filteredItems}
+            columns={columns}
+            rowKey={(r) => r.id}
+            searchPlaceholder="Search assigned collections..."
+            cardActions={
+              <div className="w-full">
+                <Tabs
+                  tabs={statusTabs}
+                  activeTab={activeTab}
+                  onChange={setActiveTab}
+                  variant="pills"
+                />
+              </div>
+            }
+          />
+        </Card>
       )}
 
       {/* CONFIRM RESUBMISSION MODAL */}

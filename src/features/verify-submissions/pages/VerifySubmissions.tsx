@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/shared/components/layout/PageHeader';
+import Card from '@/shared/components/layout/Card';
 import { Button, DataTable, Tabs, Modal, KpiCard, KpiGrid, type TabItem } from '@/shared/components/ui';
 import type { SubmissionVerificationRecord } from '../types/verifySubmissions.types';
 import { getVerifySubmissionsColumns } from '../columns/verifySubmissionsColumns';
@@ -364,24 +365,26 @@ export const VerifySubmissions: React.FC = () => {
         </div>
       </div>
 
-      {/* SUBMISSIONS DATA TABLE */}
-      <DataTable
-        caption="Submissions Pending Verification"
-        data={filteredSubmissions}
-        columns={columns}
-        rowKey={(r) => r.id}
-        searchPlaceholder="Search institution name or code..."
-        cardActions={
-          <div className="w-full">
-            <Tabs
-              tabs={statusTabs}
-              activeTab={activeTab}
-              onChange={setActiveTab}
-              variant="pills"
-            />
-          </div>
-        }
-      />
+      {/* SUBMISSIONS DATA TABLE inside Card */}
+      <Card title="Submissions Pending Verification">
+        <DataTable
+          caption="Submissions Pending Verification"
+          data={filteredSubmissions}
+          columns={columns}
+          rowKey={(r) => r.id}
+          searchPlaceholder="Search institution name or code..."
+          cardActions={
+            <div className="w-full">
+              <Tabs
+                tabs={statusTabs}
+                activeTab={activeTab}
+                onChange={setActiveTab}
+                variant="pills"
+              />
+            </div>
+          }
+        />
+      </Card>
 
       {/* VERIFY SUBMISSION MODAL (Using standard Modal.tsx) */}
       {verifyingSubmission && (

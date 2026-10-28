@@ -585,17 +585,19 @@ export const ConfigureValidationRules: React.FC = () => {
         </div>
       </Card>
 
-      {/* Active Validation Rules Table (No Card) */}
-      <DataTable
-        caption="Active Validation Rules"
-        data={collectionRules}
-        columns={ruleColumns}
-        rowKey={(r) => r.id}
-        rowLabel={(r) => `${r.id} (${r.questionCode})`}
-        searchPlaceholder="Search rules, question, type or parameters..."
-        emptyTitle="No Validation Rules Configured"
-        emptyDescription="Use the form above to add cross-question comparisons, HIMS master checks, or format validations."
-      />
+      {/* Active Validation Rules Table inside Card */}
+      <Card title="Active Validation Rules">
+        <DataTable
+          caption="Active Validation Rules"
+          data={collectionRules}
+          columns={ruleColumns}
+          rowKey={(r) => r.id}
+          rowLabel={(r) => `${r.id} (${r.questionCode})`}
+          searchPlaceholder="Search rules, question, type or parameters..."
+          emptyTitle="No Validation Rules Configured"
+          emptyDescription="Use the form above to add cross-question comparisons, HIMS master checks, or format validations."
+        />
+      </Card>
     </div>
   );
 };

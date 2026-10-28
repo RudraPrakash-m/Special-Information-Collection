@@ -265,69 +265,71 @@ export const CollectedDataReports: React.FC = () => {
       {/* SECTION 2: REPORTS & ANALYTICS DATA TABLE */}
       <div className="space-y-4">
         {activeReportTab === 'consolidated' && (
-          <DataTable
-            caption="Consolidated Clean Data (Row-per-Institution)"
-            data={filteredConsolidated}
-            columns={consolidatedColumns}
-            rowKey={(r) => r.id}
-            searchPlaceholder="Search institution name or AISHE..."
-            cardActions={
-              <div className="w-full space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b">
-                  <Tabs
-                    tabs={reportTabs}
-                    activeTab={activeReportTab}
-                    onChange={setActiveReportTab}
-                    variant="pills"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      icon={<Download size={13} />}
-                      onClick={() => toast.success('Exporting official Consolidated Excel file (.xlsx)...')}
-                    >
-                      Export Excel
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      icon={<FileText size={13} />}
-                      onClick={() => toast.success('Generating Consolidated Summary PDF report...')}
-                    >
-                      Summary PDF
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      icon={<Archive size={13} />}
-                      onClick={() => toast.success('Packaging supporting document attachments in ZIP archive...')}
-                    >
-                      Attachments (ZIP)
-                    </Button>
+          <Card title="Consolidated Clean Data (Row-per-Institution)">
+            <DataTable
+              caption="Consolidated Clean Data (Row-per-Institution)"
+              data={filteredConsolidated}
+              columns={consolidatedColumns}
+              rowKey={(r) => r.id}
+              searchPlaceholder="Search institution name or AISHE..."
+              cardActions={
+                <div className="w-full space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b">
+                    <Tabs
+                      tabs={reportTabs}
+                      activeTab={activeReportTab}
+                      onChange={setActiveReportTab}
+                      variant="pills"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        icon={<Download size={13} />}
+                        onClick={() => toast.success('Exporting official Consolidated Excel file (.xlsx)...')}
+                      >
+                        Export Excel
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        icon={<FileText size={13} />}
+                        onClick={() => toast.success('Generating Consolidated Summary PDF report...')}
+                      >
+                        Summary PDF
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        icon={<Archive size={13} />}
+                        onClick={() => toast.success('Packaging supporting document attachments in ZIP archive...')}
+                      >
+                        Attachments (ZIP)
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            }
-            filters={
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                  District:
-                </label>
-                <select
-                  value={selectedDistrict}
-                  onChange={(e) => setSelectedDistrict(e.target.value)}
-                  className="ui-field !h-8 text-xs py-0 px-2 min-w-[130px] rounded-md"
-                >
-                  <option value="all">All Districts</option>
-                  <option value="Khordha">Khordha</option>
-                  <option value="Cuttack">Cuttack</option>
-                  <option value="Dhenkanal">Dhenkanal</option>
-                  <option value="Kendrapara">Kendrapara</option>
-                </select>
-              </div>
-            }
-          />
+              }
+              filters={
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                    District:
+                  </label>
+                  <select
+                    value={selectedDistrict}
+                    onChange={(e) => setSelectedDistrict(e.target.value)}
+                    className="ui-field !h-8 text-xs py-0 px-2 min-w-[130px] rounded-md"
+                  >
+                    <option value="all">All Districts</option>
+                    <option value="Khordha">Khordha</option>
+                    <option value="Cuttack">Cuttack</option>
+                    <option value="Dhenkanal">Dhenkanal</option>
+                    <option value="Kendrapara">Kendrapara</option>
+                  </select>
+                </div>
+              }
+            />
+          </Card>
         )}
 
         {activeReportTab === 'summary' && (
