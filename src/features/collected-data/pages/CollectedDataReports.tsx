@@ -13,6 +13,8 @@ import { toast } from 'sonner';
 import PageHeader from '@/shared/components/layout/PageHeader';
 import Card from '@/shared/components/layout/Card';
 import { Button, DataTable, FilterPanel, Modal, DialogModal, Tabs, KpiCard, KpiGrid, type TabItem } from '@/shared/components/ui';
+import { SearchableSelect } from '@/shared/components/ui/Forms';
+import { FieldInfoTooltip } from '../components/FieldInfoTooltip';
 import type { ConsolidatedRow } from '../types/collectedData.types';
 import { getConsolidatedDataColumns } from '../columns/collectedDataColumns';
 import { validateReopenDataset } from '../validation/collectedDataValidation';
@@ -82,6 +84,17 @@ const INITIAL_CONSOLIDATED_DATA: ConsolidatedRow[] = [
     q2_labs: 9,
     q3_workstations: 8,
     q4_smartClass: 'No',
+  },
+];
+
+const COLLECTION_CYCLE_OPTIONS = [
+  {
+    label: 'IC-2026-001 — Lab Equipment Census (Cycle 1 - Nov 2026)',
+    value: 'IC-2026-001',
+  },
+  {
+    label: 'IC-2026-004 — SRLUG Audit 2026 (Cycle 2 - AY 2026-27)',
+    value: 'IC-2026-004',
   },
 ];
 
@@ -204,25 +217,33 @@ export const CollectedDataReports: React.FC = () => {
       <Card title="Dataset Finalisation & Official Locking">
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
-            <div>
-              <label className="text-xs font-semibold text-foreground block mb-1">
-                Collection / Cycle <span className="text-red-500">*</span>
-              </label>
-              <select
+            <div className="sm:col-span-2 md:col-span-2">
+              <FieldInfoTooltip
+                label="Collection / Cycle"
+                required={true}
+                tooltipText="Select the information collection and survey cycle to review or finalise."
+              />
+              <SearchableSelect
+                options={COLLECTION_CYCLE_OPTIONS}
                 value={selectedCollectionId}
-                onChange={(e) => {
-                  setSelectedCollectionId(e.target.value);
-                  setSelectedCycle(e.target.value === 'IC-2026-001' ? 'Cycle 1 - Nov 2026' : 'Cycle 2 - AY 2026-27');
+                onChange={(val) => {
+                  const strVal = String(val);
+                  setSelectedCollectionId(strVal);
+                  setSelectedCycle(strVal === 'IC-2026-001' ? 'Cycle 1 - Nov 2026' : 'Cycle 2 - AY 2026-27');
                 }}
-                className="ui-field text-xs w-full"
-              >
-                <option value="IC-2026-001">IC-2026-001 — Lab Equipment Census (Cycle 1)</option>
-                <option value="IC-2026-004">IC-2026-004 — SRLUG Audit 2026 (Cycle 2)</option>
-              </select>
+                placeholder="- Select Collection / Cycle -"
+              />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-foreground block mb-1">Dataset Status</label>
+              <FieldInfoTooltip
+                label="Dataset Status"
+                tooltipText={
+                  isFinalised
+                    ? `Official dataset locked on ${finalisedInfo.date} by ${finalisedInfo.user}. Reports reflect verified values across online and offline submissions.`
+                    : 'Dataset unlocked. Pending corrections may be received until re-finalisation.'
+                }
+              />
               <div className="flex items-center gap-2 h-9 px-3 rounded-lg border bg-muted/20 text-xs">
                 {isFinalised ? (
                   <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
@@ -234,18 +255,6 @@ export const CollectedDataReports: React.FC = () => {
                   </span>
                 )}
               </div>
-            </div>
-
-            <div className="col-span-1 sm:col-span-2 text-xs text-muted-foreground">
-              {isFinalised ? (
-                <p>
-                  Official dataset locked on <strong>{finalisedInfo.date}</strong> by <strong>{finalisedInfo.user}</strong>. Reports reflect verified values across online and offline submissions.
-                </p>
-              ) : (
-                <p className="text-amber-800 dark:text-amber-300 font-medium">
-                  Dataset unlocked. Pending corrections may be received until re-finalisation.
-                </p>
-              )}
             </div>
           </div>
 
