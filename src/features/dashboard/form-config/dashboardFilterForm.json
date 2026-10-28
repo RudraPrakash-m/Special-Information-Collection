@@ -1,0 +1,42 @@
+[
+  {
+    "name": "keyword",
+    "label": "Search Query",
+    "type": "text",
+    "placeholder": "Search activity by title or keyword...",
+    "gridColumn": 4,
+    "validation": {
+      "minLength": 2,
+      "message": "Query must be at least 2 characters"
+    }
+  },
+  {
+    "name": "category",
+    "label": "Category",
+    "type": "select",
+    "placeholder": "Select category",
+    "gridColumn": 4,
+    "options": [
+      { "label": "All Categories", "value": "all" },
+      { "label": "System", "value": "system" },
+      { "label": "Audit", "value": "audit" },
+      { "label": "User Activity", "value": "user" },
+      { "label": "Operations", "value": "operations" }
+    ]
+  },
+  {
+    "name": "status",
+    "label": "Status",
+    "type": "select",
+    "placeholder": "Select status",
+    "gridColumn": 4,
+    "options": [
+      { "label": "All Statuses", "value": "all" },
+      { "label": "Completed", "value": "Completed" },
+      { "label": "Pending", "value": "Pending" },
+      { "label": "In Progress", "value": "In Progress" },
+      { "label": "Cancelled", "value": "Cancelled" }
+    ]
+  }
+]
+

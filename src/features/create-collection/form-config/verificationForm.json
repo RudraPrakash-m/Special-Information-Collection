@@ -1,0 +1,42 @@
+[
+  {
+    "name": "approvalRequired",
+    "label": "Approval Required",
+    "type": "radio-group",
+    "gridColumn": 12,
+    "required": true,
+    "options": [
+      { "label": "Yes (Multi-level verification enabled)", "value": "yes" },
+      { "label": "No (Direct submission without verification)", "value": "no" }
+    ],
+    "validation": {
+      "required": true,
+      "message": "Please specify whether approval is required"
+    }
+  },
+  {
+    "name": "allowReturnForCorrection",
+    "label": "Allow Return for Correction",
+    "type": "checkbox",
+    "gridColumn": 6,
+    "helpText": "Allows verifiers and validation rules to return submissions back to institutions."
+  },
+  {
+    "name": "correctionPeriodDays",
+    "label": "Correction Period (Days)",
+    "type": "number",
+    "placeholder": "7",
+    "gridColumn": 6,
+    "min": 1,
+    "max": 30,
+    "helpText": "Days allowed for institutions to resubmit (1–30 days, default 7)."
+  },
+  {
+    "name": "allowOfflineUpload",
+    "label": "Allow Offline Upload",
+    "type": "checkbox",
+    "gridColumn": 12,
+    "helpText": "Allows HED Admin to upload data received offline directly for non-reporting institutions."
+  }
+]
+

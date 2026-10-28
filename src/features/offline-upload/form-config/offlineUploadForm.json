@@ -1,0 +1,46 @@
+[
+  {
+    "name": "collectionId",
+    "label": "Collection & Closed Cycle",
+    "type": "select",
+    "placeholder": "- Select -",
+    "gridColumn": 6,
+    "required": true,
+    "helpText": "Lists collections with Allow Offline Upload enabled whose cycle survey is closed.",
+    "validation": {
+      "required": true,
+      "message": "Collection is mandatory"
+    }
+  },
+  {
+    "name": "template",
+    "label": "Prescribed Excel Template",
+    "gridColumn": 6
+  },
+  {
+    "name": "excelFile",
+    "label": "Filled Excel File (.xlsx)",
+    "type": "file",
+    "gridColumn": 6,
+    "accept": ".xlsx",
+    "required": true,
+    "helpText": "Select .xlsx file (max 10 MB)",
+    "validation": {
+      "required": true,
+      "message": "Please upload the completed offline Excel submission file"
+    }
+  },
+  {
+    "name": "scannedLetter",
+    "label": "Scanned Supporting Letter / Format (.pdf)",
+    "type": "file",
+    "gridColumn": 6,
+    "accept": ".pdf",
+    "required": true,
+    "helpText": "Select official PDF copy (max 20 MB)",
+    "validation": {
+      "required": true,
+      "message": "Please upload the scanned copy of the institutional letter (PDF)"
+    }
+  }
+]

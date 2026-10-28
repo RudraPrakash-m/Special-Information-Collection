@@ -1,0 +1,79 @@
+[
+  {
+    "name": "collectionId",
+    "label": "Collection",
+    "type": "select",
+    "placeholder": "- Select -",
+    "gridColumn": 3,
+    "required": true,
+    "validation": {
+      "required": true,
+      "message": "Collection is mandatory"
+    }
+  },
+  {
+    "name": "linkName",
+    "label": "Link Name",
+    "type": "text",
+    "placeholder": "",
+    "gridColumn": 3,
+    "required": true,
+    "validation": {
+      "required": true,
+      "pattern": "^[a-z0-9-]+$",
+      "message": "Link Name must contain only lower-case letters, numbers and hyphens"
+    }
+  },
+  {
+    "name": "dedicatedLink",
+    "label": "Dedicated Link",
+    "type": "text",
+    "placeholder": "",
+    "gridColumn": 3,
+    "readOnly": true
+  },
+  {
+    "name": "helpdeskContact",
+    "label": "Helpdesk Contact",
+    "type": "text",
+    "placeholder": "",
+    "gridColumn": 3
+  },
+  {
+    "name": "pageHeading",
+    "label": "Page Heading",
+    "type": "text",
+    "placeholder": "",
+    "gridColumn": 6,
+    "maxLength": 200,
+    "required": true,
+    "validation": {
+      "required": true,
+      "maxLength": 200,
+      "message": "Page Heading is mandatory (max 200 characters)"
+    }
+  },
+  {
+    "name": "downloads",
+    "label": "Downloads",
+    "type": "file",
+    "placeholder": "",
+    "gridColumn": 3,
+    "accept": ".pdf,.xlsx,.docx"
+  },
+  {
+    "name": "showAsDedicatedMenu",
+    "label": "Show as Dedicated Menu",
+    "type": "checkbox",
+    "gridColumn": 3
+  },
+  {
+    "name": "instructions",
+    "label": "Instructions",
+    "type": "textarea",
+    "placeholder": "",
+    "gridColumn": 12,
+    "maxLength": 2000,
+    "rows": 3
+  }
+]

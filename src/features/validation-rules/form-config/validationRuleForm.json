@@ -1,0 +1,183 @@
+[
+  {
+    "name": "questionId",
+    "label": "Survey Question to Validate",
+    "type": "select",
+    "placeholder": "- Select Question -",
+    "gridColumn": 3,
+    "required": true,
+    "validation": {
+      "required": true,
+      "message": "Survey Question is mandatory"
+    }
+  },
+  {
+    "name": "ruleCategory",
+    "label": "Validation Rule Type",
+    "type": "select",
+    "placeholder": "- Select Rule Type -",
+    "gridColumn": 3,
+    "required": true,
+    "options": [
+      { "label": "Cross-Question Comparison (e.g. Q3 ≤ Q2)", "value": "cross_question" },
+      { "label": "Check Against HIMS Master Database", "value": "hims_match" },
+      { "label": "Data Format Restriction (Mobile, Email, PIN)", "value": "format" },
+      { "label": "Numeric Value Range (Min / Max)", "value": "range" },
+      { "label": "Unique Across All Institutions", "value": "uniqueness" }
+    ],
+    "validation": {
+      "required": true,
+      "message": "Rule Type is mandatory"
+    }
+  },
+  {
+    "name": "operator",
+    "label": "Relational Operator",
+    "type": "select",
+    "placeholder": "- Select Operator -",
+    "gridColumn": 3,
+    "required": true,
+    "options": [
+      { "label": "≤ (Less than or equal to)", "value": "<=" },
+      { "label": "< (Strictly less than)", "value": "<" },
+      { "label": "= (Must equal)", "value": "=" },
+      { "label": "≠ (Must not equal)", "value": "!=" },
+      { "label": "≥ (Greater than or equal to)", "value": ">=" },
+      { "label": "> (Strictly greater than)", "value": ">" }
+    ],
+    "validation": {
+      "required": true,
+      "message": "Operator is mandatory"
+    }
+  },
+  {
+    "name": "targetQuestionId",
+    "label": "Target Question to Compare With",
+    "type": "select",
+    "placeholder": "- Select Compatible Question -",
+    "gridColumn": 3,
+    "required": true,
+    "validation": {
+      "required": true,
+      "message": "Target Question is mandatory"
+    }
+  },
+  {
+    "name": "himsFieldId",
+    "label": "HIMS Master Reference Field",
+    "type": "select",
+    "placeholder": "- Select HIMS Field -",
+    "gridColumn": 3,
+    "required": true,
+    "validation": {
+      "required": true,
+      "message": "HIMS Field is mandatory"
+    }
+  },
+  {
+    "name": "verificationMode",
+    "label": "Verification Mode & Tolerance",
+    "type": "select",
+    "placeholder": "- Select Mode -",
+    "gridColumn": 3,
+    "required": true,
+    "options": [
+      { "label": "Existence Check (Must Exist in HIMS Master)", "value": "existence" },
+      { "label": "Exact Figure Match (0% Tolerance)", "value": "figure_0" },
+      { "label": "Figure Match (±5% Tolerance)", "value": "figure_5" },
+      { "label": "Figure Match (±10% Tolerance)", "value": "figure_10" },
+      { "label": "Figure Match (±20% Tolerance)", "value": "figure_20" }
+    ],
+    "validation": {
+      "required": true,
+      "message": "Verification Mode is mandatory"
+    }
+  },
+  {
+    "name": "dataFormat",
+    "label": "Enforced Short-Text Format",
+    "type": "select",
+    "placeholder": "- Select Format -",
+    "gridColumn": 3,
+    "required": true,
+    "options": [
+      { "label": "Indian Mobile Number (10 digits)", "value": "mobile" },
+      { "label": "Valid Email Address (RFC 5322)", "value": "email" },
+      { "label": "Postal PIN Code (6 digits)", "value": "pincode" },
+      { "label": "Whole Number Only", "value": "number" },
+      { "label": "Decimal Currency / Figure", "value": "decimal" },
+      { "label": "Standard Text", "value": "text" }
+    ],
+    "validation": {
+      "required": true,
+      "message": "Data Format is mandatory"
+    }
+  },
+  {
+    "name": "formatNotice",
+    "label": "Compatibility Standard",
+    "type": "text",
+    "gridColumn": 3,
+    "readOnly": true
+  },
+  {
+    "name": "minValue",
+    "label": "Minimum Value (Inclusive)",
+    "type": "number",
+    "placeholder": "e.g. 1",
+    "gridColumn": 3
+  },
+  {
+    "name": "maxValue",
+    "label": "Maximum Value (Inclusive)",
+    "type": "number",
+    "placeholder": "e.g. 5000",
+    "gridColumn": 3
+  },
+  {
+    "name": "uniquenessScope",
+    "label": "Scope of Uniqueness",
+    "type": "select",
+    "gridColumn": 3,
+    "options": [
+      { "label": "Current Active Cycle (All Institutions)", "value": "cycle" }
+    ]
+  },
+  {
+    "name": "conflictNotice",
+    "label": "Conflict Handling",
+    "type": "text",
+    "gridColumn": 3,
+    "readOnly": true
+  },
+  {
+    "name": "onFailure",
+    "label": "Action on Failure",
+    "type": "select",
+    "placeholder": "- Select Action -",
+    "gridColumn": 3,
+    "required": true,
+    "options": [
+      { "label": "Return for Correction (Reject back to College)", "value": "return_for_correction" },
+      { "label": "Flag for Verifier (Alert Admin in Approval Queue)", "value": "flag_for_verifier" }
+    ],
+    "validation": {
+      "required": true,
+      "message": "Action on Failure is mandatory"
+    }
+  },
+  {
+    "name": "errorMessage",
+    "label": "Failure Message (Shown to Institution / Verifier)",
+    "type": "text",
+    "placeholder": "Enter custom error message shown when validation fails...",
+    "gridColumn": 6,
+    "wrapperClassName": "md:col-span-9 col-span-12 sm:col-span-6",
+    "maxLength": 300,
+    "required": true,
+    "validation": {
+      "required": true,
+      "message": "Error message is mandatory"
+    }
+  }
+]

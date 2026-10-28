@@ -1,0 +1,161 @@
+[
+  {
+    "name": "surveyId",
+    "label": "Data Capture Survey",
+    "type": "select",
+    "placeholder": "- Select Survey -",
+    "gridColumn": 3,
+    "required": true,
+    "validation": {
+      "required": true,
+      "message": "Data Capture Survey is mandatory"
+    }
+  },
+  {
+    "name": "collectionTitle",
+    "label": "Collection Title",
+    "type": "text",
+    "placeholder": "Enter collection title (max 200 characters)",
+    "gridColumn": 6,
+    "maxLength": 200,
+    "required": true,
+    "validation": {
+      "required": true,
+      "minLength": 3,
+      "maxLength": 200,
+      "message": "Collection Title is mandatory (max 200 characters)"
+    }
+  },
+  {
+    "name": "collectionType",
+    "label": "Collection Type",
+    "type": "select",
+    "placeholder": "- Select -",
+    "gridColumn": 3,
+    "required": true,
+    "options": [
+      { "label": "Institution-specific", "value": "institution" },
+      { "label": "Scheme-specific", "value": "scheme" },
+      { "label": "Activity-specific", "value": "activity" }
+    ],
+    "validation": {
+      "required": true,
+      "message": "Collection Type is mandatory"
+    }
+  },
+  {
+    "name": "scheme",
+    "label": "Scheme",
+    "type": "select",
+    "placeholder": "- Select Scheme -",
+    "gridColumn": 3,
+    "options": [
+      { "label": "Mo College Abhijan Scheme (MCA-2026)", "value": "SCH-01" },
+      { "label": "State Higher Education Innovation Fund (SHEIF-02)", "value": "SCH-02" },
+      { "label": "Odisha State Merit Scholarship Programme (OSMSP-04)", "value": "SCH-03" },
+      { "label": "World Bank Higher Education Modernisation Project (WB-HEMP)", "value": "SCH-04" },
+      { "label": "State Research & Laboratory Upgrade Grant (SRLUG-26)", "value": "SCH-05" }
+    ]
+  },
+  {
+    "name": "activityName",
+    "label": "Activity Name",
+    "type": "text",
+    "gridColumn": 3,
+    "maxLength": 200
+  },
+  {
+    "name": "orderReference",
+    "label": "Order / Letter Reference",
+    "type": "text",
+    "gridColumn": 3,
+    "maxLength": 100
+  },
+  {
+    "name": "referenceDocument",
+    "label": "Reference Document",
+    "type": "file",
+    "gridColumn": 3,
+    "accept": ".pdf"
+  },
+  {
+    "name": "frequency",
+    "label": "Frequency",
+    "type": "select",
+    "placeholder": "- Select -",
+    "gridColumn": 3,
+    "required": true,
+    "options": [
+      { "label": "One-time", "value": "one-time" },
+      { "label": "Monthly", "value": "monthly" },
+      { "label": "Quarterly", "value": "quarterly" },
+      { "label": "Half-yearly", "value": "half-yearly" },
+      { "label": "Yearly", "value": "yearly" }
+    ],
+    "validation": {
+      "required": true,
+      "message": "Frequency is mandatory"
+    }
+  },
+  {
+    "name": "cycleDurationDays",
+    "label": "Cycle Duration (Days)",
+    "type": "number",
+    "gridColumn": 3,
+    "min": 1,
+    "max": 60
+  },
+  {
+    "name": "recurrenceEndDate",
+    "label": "Recurrence End Date",
+    "type": "date",
+    "gridColumn": 3
+  },
+  {
+    "name": "approvalRequired",
+    "label": "Approval Required",
+    "type": "select",
+    "placeholder": "- Select -",
+    "gridColumn": 3,
+    "required": true,
+    "options": [
+      { "label": "Yes", "value": "yes" },
+      { "label": "No", "value": "no" }
+    ],
+    "validation": {
+      "required": true,
+      "message": "Approval Required is mandatory"
+    }
+  },
+  {
+    "name": "allowReturnForCorrection",
+    "label": "Allow Return for Correction",
+    "type": "select",
+    "placeholder": "- Select -",
+    "gridColumn": 3,
+    "options": [
+      { "label": "Yes", "value": "yes" },
+      { "label": "No", "value": "no" }
+    ]
+  },
+  {
+    "name": "correctionPeriodDays",
+    "label": "Correction Period (Days)",
+    "type": "number",
+    "gridColumn": 3,
+    "min": 1,
+    "max": 30
+  },
+  {
+    "name": "allowOfflineUpload",
+    "label": "Allow Offline Upload",
+    "type": "select",
+    "placeholder": "- Select -",
+    "gridColumn": 3,
+    "options": [
+      { "label": "No", "value": "no" },
+      { "label": "Yes", "value": "yes" }
+    ]
+  }
+]
+

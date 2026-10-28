@@ -1,0 +1,57 @@
+[
+  {
+    "name": "title",
+    "label": "Activity Title",
+    "type": "text",
+    "placeholder": "Enter descriptive title",
+    "gridColumn": 12,
+    "validation": {
+      "required": true,
+      "minLength": 3,
+      "message": "Title is required (at least 3 characters)"
+    }
+  },
+  {
+    "name": "category",
+    "label": "Category",
+    "type": "select",
+    "placeholder": "Select category",
+    "gridColumn": 6,
+    "options": [
+      { "label": "System", "value": "system" },
+      { "label": "Audit", "value": "audit" },
+      { "label": "User Activity", "value": "user" },
+      { "label": "Operations", "value": "operations" }
+    ],
+    "validation": {
+      "required": true,
+      "message": "Please choose a category"
+    }
+  },
+  {
+    "name": "priority",
+    "label": "Priority Level",
+    "type": "select",
+    "placeholder": "Select priority",
+    "gridColumn": 6,
+    "options": [
+      { "label": "Low", "value": "low" },
+      { "label": "Medium", "value": "medium" },
+      { "label": "High", "value": "high" },
+      { "label": "Critical", "value": "critical" }
+    ],
+    "validation": {
+      "required": true,
+      "message": "Please select priority"
+    }
+  },
+  {
+    "name": "notes",
+    "label": "Notes / Summary",
+    "type": "textarea",
+    "placeholder": "Enter additional notes or context...",
+    "gridColumn": 12,
+    "rows": 3
+  }
+]
+

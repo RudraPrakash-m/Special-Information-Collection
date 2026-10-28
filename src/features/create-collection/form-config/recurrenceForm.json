@@ -1,0 +1,40 @@
+[
+  {
+    "name": "frequency",
+    "label": "Frequency",
+    "type": "select",
+    "placeholder": "Select frequency",
+    "gridColumn": 4,
+    "required": true,
+    "options": [
+      { "label": "One-time", "value": "one-time" },
+      { "label": "Monthly", "value": "monthly" },
+      { "label": "Quarterly", "value": "quarterly" },
+      { "label": "Half-yearly", "value": "half-yearly" },
+      { "label": "Yearly", "value": "yearly" }
+    ],
+    "validation": {
+      "required": true,
+      "message": "Frequency is mandatory"
+    },
+    "helpText": "One-time or recurring interval for cycle generation."
+  },
+  {
+    "name": "cycleDurationDays",
+    "label": "Cycle Duration (Days)",
+    "type": "number",
+    "placeholder": "e.g. 15",
+    "gridColumn": 4,
+    "min": 1,
+    "max": 60,
+    "helpText": "Number of days each cycle remains open (1–60 days). Must be shorter than the period."
+  },
+  {
+    "name": "recurrenceEndDate",
+    "label": "Recurrence End Date",
+    "type": "date",
+    "gridColumn": 4,
+    "helpText": "Date after which no new cycle is created. Leave blank for continuous cycles."
+  }
+]
+

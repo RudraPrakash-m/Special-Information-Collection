@@ -1,0 +1,111 @@
+[
+  {
+    "name": "surveyId",
+    "label": "Data Capture Survey",
+    "type": "select",
+    "placeholder": "Select a qualifying Draft survey...",
+    "gridColumn": 3,
+    "required": true,
+    "validation": {
+      "required": true,
+      "message": "Data Capture Survey is mandatory"
+    },
+    "helpText": "Only Draft surveys with HIMS Module 'Special Information Collection', Responder Role 'Institution User only', Publication Method 'Portal', and Resubmission unchecked are eligible."
+  },
+  {
+    "name": "collectionTitle",
+    "label": "Collection Title",
+    "type": "text",
+    "placeholder": "Enter unique information collection title...",
+    "gridColumn": 12,
+    "maxLength": 200,
+    "required": true,
+    "validation": {
+      "required": true,
+      "minLength": 3,
+      "maxLength": 200,
+      "message": "Collection Title is mandatory (max 200 characters)"
+    }
+  },
+  {
+    "name": "collectionType",
+    "label": "Collection Type",
+    "type": "radio-group",
+    "gridColumn": 12,
+    "required": true,
+    "options": [
+      {
+        "label": "Institution-specific",
+        "value": "institution"
+      },
+      {
+        "label": "Scheme-specific",
+        "value": "scheme"
+      },
+      {
+        "label": "Activity-specific",
+        "value": "activity"
+      }
+    ],
+    "validation": {
+      "required": true,
+      "message": "Please choose a Collection Type"
+    }
+  },
+  {
+    "name": "scheme",
+    "label": "Scheme",
+    "type": "select",
+    "placeholder": "Select applicable active scheme...",
+    "gridColumn": 6,
+    "options": [
+      {
+        "label": "Mo College Abhijan Scheme (MCA-2026)",
+        "value": "SCH-01"
+      },
+      {
+        "label": "State Higher Education Innovation Fund (SHEIF-02)",
+        "value": "SCH-02"
+      },
+      {
+        "label": "Odisha State Merit Scholarship Programme (OSMSP-04)",
+        "value": "SCH-03"
+      },
+      {
+        "label": "World Bank Higher Education Modernisation Project (WB-HEMP)",
+        "value": "SCH-04"
+      },
+      {
+        "label": "State Research & Laboratory Upgrade Grant (SRLUG-26)",
+        "value": "SCH-05"
+      }
+    ],
+    "helpText": "Select active scheme under which data will be reported."
+  },
+  {
+    "name": "activityName",
+    "label": "Activity Name",
+    "type": "text",
+    "placeholder": "e.g. Annual Student Science Conclave & Laboratory Audit",
+    "gridColumn": 6,
+    "maxLength": 200,
+    "helpText": "Specify the event, program, or activity requiring official data collection."
+  },
+  {
+    "name": "orderReference",
+    "label": "Order / Letter Reference",
+    "type": "text",
+    "placeholder": "e.g. HED-EST-2026/0942-A",
+    "gridColumn": 6,
+    "maxLength": 100,
+    "helpText": "Official departmental order or government letter reference."
+  },
+  {
+    "name": "referenceDocument",
+    "label": "Reference Document (PDF, Max 10MB)",
+    "type": "file",
+    "gridColumn": 6,
+    "accept": ".pdf",
+    "helpText": "Upload an attested copy of the departmental order or prescribed format."
+  }
+]
