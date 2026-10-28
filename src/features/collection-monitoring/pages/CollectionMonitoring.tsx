@@ -7,11 +7,12 @@ import {
   Download,
   Send,
   Bell,
+  RotateCcw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/shared/components/layout/PageHeader';
 import Card from '@/shared/components/layout/Card';
-import { Button, DataTable, KpiCard, KpiGrid } from '@/shared/components/ui';
+import { Button, DataTable, FilterPanel, KpiCard, KpiGrid } from '@/shared/components/ui';
 import type { PendingVerificationItem, DefaulterItem } from '../types/monitoring.types';
 import {
   getPendingVerificationColumns,
@@ -114,6 +115,24 @@ export const CollectionMonitoring: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
   const [selectedInstitutionType, setSelectedInstitutionType] = useState<string>('all');
   const [selectedDefaulterIds, setSelectedDefaulterIds] = useState<string[]>([]);
+  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(false);
+
+  const appliedFilterCount = useMemo(() => {
+    let count = 0;
+    if (selectedCollectionId !== 'IC-2026-001') count++;
+    if (selectedCycle !== 'Cycle 1 - Nov 2026') count++;
+    if (selectedDistrict !== 'all') count++;
+    if (selectedInstitutionType !== 'all') count++;
+    return count;
+  }, [selectedCollectionId, selectedCycle, selectedDistrict, selectedInstitutionType]);
+
+  const handleResetFilters = () => {
+    setSelectedCollectionId('IC-2026-001');
+    setSelectedCycle('Cycle 1 - Nov 2026');
+    setSelectedDistrict('all');
+    setSelectedInstitutionType('all');
+    toast.info('Filters reset.');
+  };
 
   // Monitoring Metrics per SRS
   const assigned = 64;
@@ -188,16 +207,35 @@ export const CollectionMonitoring: React.FC = () => {
         />
       </KpiGrid>
 
-      {/* FILTERS BAR */}
-      <div className="p-4 rounded-xl border border-border bg-card shadow-xs grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
-        <div>
+      {/* FILTER PANEL (Collapsible with saffron edge strip) */}
+      <FilterPanel
+        title="Filter Monitoring Data"
+        hidden={isFilterHidden}
+        onHiddenChange={setIsFilterHidden}
+        appliedCount={appliedFilterCount}
+        floatingButton={false}
+        onSubmit={() => {}}
+        actions={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            leftIcon={RotateCcw}
+            onClick={handleResetFilters}
+            className="h-[34px]"
+          >
+            Reset Filters
+          </Button>
+        }
+      >
+        <div className="min-w-56 flex-1">
           <label className="text-xs font-semibold text-foreground block mb-1">
-            Collection <span className="text-red-500">*</span>
+            Collection
           </label>
           <select
             value={selectedCollectionId}
             onChange={(e) => setSelectedCollectionId(e.target.value)}
-            className="ui-field text-xs w-full"
+            className="ui-field text-xs w-full h-[34px]"
           >
             <option value="IC-2026-001">IC-2026-001 — Lab Equipment Census</option>
             <option value="IC-2026-003">IC-2026-003 — Faculty Census 2026</option>
@@ -205,24 +243,24 @@ export const CollectionMonitoring: React.FC = () => {
           </select>
         </div>
 
-        <div>
+        <div className="min-w-44 flex-1">
           <label className="text-xs font-semibold text-foreground block mb-1">Cycle</label>
           <select
             value={selectedCycle}
             onChange={(e) => setSelectedCycle(e.target.value)}
-            className="ui-field text-xs w-full"
+            className="ui-field text-xs w-full h-[34px]"
           >
             <option value="Cycle 1 - Nov 2026">Cycle 1 - Nov 2026 (Active)</option>
             <option value="Cycle 2 - AY 2026-27">Cycle 2 - AY 2026-27</option>
           </select>
         </div>
 
-        <div>
+        <div className="min-w-40 flex-1">
           <label className="text-xs font-semibold text-foreground block mb-1">District</label>
           <select
             value={selectedDistrict}
             onChange={(e) => setSelectedDistrict(e.target.value)}
-            className="ui-field text-xs w-full"
+            className="ui-field text-xs w-full h-[34px]"
           >
             <option value="all">All Districts (30)</option>
             <option value="Khordha">Khordha</option>
@@ -232,12 +270,12 @@ export const CollectionMonitoring: React.FC = () => {
           </select>
         </div>
 
-        <div>
+        <div className="min-w-48 flex-1">
           <label className="text-xs font-semibold text-foreground block mb-1">Institution Type</label>
           <select
             value={selectedInstitutionType}
             onChange={(e) => setSelectedInstitutionType(e.target.value)}
-            className="ui-field text-xs w-full"
+            className="ui-field text-xs w-full h-[34px]"
           >
             <option value="all">All Institution Types</option>
             <option value="Government Autonomous">Government Autonomous</option>
@@ -245,7 +283,7 @@ export const CollectionMonitoring: React.FC = () => {
             <option value="State University">State University</option>
           </select>
         </div>
-      </div>
+      </FilterPanel>
 
       {/* SECTION 1: PENDING AT VERIFICATION / CORRECTION TABLE inside Card */}
       <Card title="Submissions Pending at Verification / Correction">
@@ -255,6 +293,11 @@ export const CollectionMonitoring: React.FC = () => {
           columns={pendingColumns}
           rowKey={(r) => r.id}
           searchPlaceholder="Search pending institutions..."
+          filterToggle={{
+            hidden: isFilterHidden,
+            onToggle: () => setIsFilterHidden((prev) => !prev),
+            appliedCount: appliedFilterCount,
+          }}
         />
       </Card>
 
@@ -266,6 +309,11 @@ export const CollectionMonitoring: React.FC = () => {
           columns={defaulterColumns}
           rowKey={(r) => r.id}
           searchPlaceholder="Search defaulters by name or AISHE..."
+          filterToggle={{
+            hidden: isFilterHidden,
+            onToggle: () => setIsFilterHidden((prev) => !prev),
+            appliedCount: appliedFilterCount,
+          }}
           cardActions={
             <div className="flex flex-wrap items-center gap-2">
               <Button

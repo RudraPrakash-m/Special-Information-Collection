@@ -5,11 +5,12 @@ import {
   CheckCircle2,
   Send,
   AlertTriangle,
+  RotateCcw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/shared/components/layout/PageHeader';
 import Card from '@/shared/components/layout/Card';
-import { Button, DataTable, Tabs, Modal, DialogModal, type TabItem } from '@/shared/components/ui';
+import { Button, DataTable, FilterPanel, Tabs, Modal, DialogModal, type TabItem } from '@/shared/components/ui';
 import type { MyCollectionItem } from '../types/myCollections.types';
 import { getMyCollectionsColumns } from '../columns/myCollectionsColumns';
 import { validateCorrectionSubmission } from '../validation/myCollectionsValidation';
@@ -145,11 +146,24 @@ export const MyCollections: React.FC = () => {
   const navigate = useNavigate();
   const [items, setItems] = useState<MyCollectionItem[]>(INITIAL_MY_COLLECTIONS);
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [filterType, setFilterType] = useState<string>('all');
+  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(false);
   const [selectedForCorrection, setSelectedForCorrection] = useState<MyCollectionItem | null>(null);
   const [viewingItem, setViewingItem] = useState<MyCollectionItem | null>(null);
   const [correctionAnswers, setCorrectionAnswers] = useState<Record<string, any>>({});
   const [correctionRemarks, setCorrectionRemarks] = useState<string>('');
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState<boolean>(false);
+
+  const appliedFilterCount = useMemo(() => {
+    let count = 0;
+    if (filterType !== 'all') count++;
+    return count;
+  }, [filterType]);
+
+  const handleResetFilters = () => {
+    setFilterType('all');
+    toast.info('Filters reset.');
+  };
 
   const statusTabs: TabItem[] = useMemo(() => [
     { key: 'all', label: 'All Collections', count: items.length },
@@ -176,9 +190,12 @@ export const MyCollections: React.FC = () => {
   ], [items]);
 
   const filteredItems = useMemo(() => {
-    if (activeTab === 'all') return items;
-    return items.filter((i) => i.status === activeTab);
-  }, [items, activeTab]);
+    return items.filter((i) => {
+      if (activeTab !== 'all' && i.status !== activeTab) return false;
+      if (filterType !== 'all' && i.collectionType !== filterType) return false;
+      return true;
+    });
+  }, [items, activeTab, filterType]);
 
   const handleOpenCorrection = (item: MyCollectionItem) => {
     setSelectedForCorrection(item);
@@ -426,26 +443,67 @@ export const MyCollections: React.FC = () => {
           </div>
         </Card>
       ) : (
-        /* MY COLLECTIONS DATA TABLE inside Card */
-        <Card title="Assigned Information Collections">
-          <DataTable
-            caption="Assigned Information Collections"
-            data={filteredItems}
-            columns={columns}
-            rowKey={(r) => r.id}
-            searchPlaceholder="Search assigned collections..."
-            cardActions={
-              <div className="w-full">
-                <Tabs
-                  tabs={statusTabs}
-                  activeTab={activeTab}
-                  onChange={setActiveTab}
-                  variant="pills"
-                />
-              </div>
+        /* MY COLLECTIONS DATA TABLE WITH FILTER PANEL inside Card */
+        <>
+          <FilterPanel
+            title="Filter My Collections"
+            hidden={isFilterHidden}
+            onHiddenChange={setIsFilterHidden}
+            appliedCount={appliedFilterCount}
+            floatingButton={false}
+            onSubmit={() => {}}
+            actions={
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                leftIcon={RotateCcw}
+                onClick={handleResetFilters}
+                className="h-[34px]"
+              >
+                Reset Filters
+              </Button>
             }
-          />
-        </Card>
+          >
+            <div className="min-w-48 flex-1">
+              <label className="text-xs font-semibold text-foreground block mb-1">Collection Type</label>
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="ui-field text-xs w-full h-[34px]"
+              >
+                <option value="all">All Types</option>
+                <option value="institution">Institution-specific</option>
+                <option value="scheme">Scheme-specific</option>
+              </select>
+            </div>
+          </FilterPanel>
+
+          <Card title="Assigned Information Collections">
+            <DataTable
+              caption="Assigned Information Collections"
+              data={filteredItems}
+              columns={columns}
+              rowKey={(r) => r.id}
+              searchPlaceholder="Search assigned collections..."
+              filterToggle={{
+                hidden: isFilterHidden,
+                onToggle: () => setIsFilterHidden((prev) => !prev),
+                appliedCount: appliedFilterCount,
+              }}
+              cardActions={
+                <div className="w-full">
+                  <Tabs
+                    tabs={statusTabs}
+                    activeTab={activeTab}
+                    onChange={setActiveTab}
+                    variant="pills"
+                  />
+                </div>
+              }
+            />
+          </Card>
+        </>
       )}
 
       {/* CONFIRM RESUBMISSION MODAL */}

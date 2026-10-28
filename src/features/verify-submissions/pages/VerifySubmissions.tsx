@@ -6,11 +6,12 @@ import {
   CheckCircle2,
   AlertTriangle,
   ShieldCheck,
+  RotateCcw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/shared/components/layout/PageHeader';
 import Card from '@/shared/components/layout/Card';
-import { Button, DataTable, Tabs, Modal, KpiCard, KpiGrid, type TabItem } from '@/shared/components/ui';
+import { Button, DataTable, FilterPanel, Tabs, Modal, KpiCard, KpiGrid, type TabItem } from '@/shared/components/ui';
 import type { SubmissionVerificationRecord } from '../types/verifySubmissions.types';
 import { getVerifySubmissionsColumns } from '../columns/verifySubmissionsColumns';
 import { validateVerificationAction } from '../validation/verifySubmissionsValidation';
@@ -151,6 +152,8 @@ export const VerifySubmissions: React.FC = () => {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>('IC-2026-001');
   const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
   const [selectedSource, setSelectedSource] = useState<string>('all');
+  const [selectedInstitutionType, setSelectedInstitutionType] = useState<string>('all');
+  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('Pending');
 
   // Multi-select for bulk approve
@@ -162,6 +165,23 @@ export const VerifySubmissions: React.FC = () => {
   const [allowFullEdit, setAllowFullEdit] = useState<boolean>(false);
   const [overallRemarks, setOverallRemarks] = useState<string>('');
   const [answerRemarksMap, setAnswerRemarksMap] = useState<Record<string, string>>({});
+
+  const appliedFilterCount = useMemo(() => {
+    let count = 0;
+    if (selectedCollectionId !== 'IC-2026-001') count++;
+    if (selectedDistrict !== 'all') count++;
+    if (selectedSource !== 'all') count++;
+    if (selectedInstitutionType !== 'all') count++;
+    return count;
+  }, [selectedCollectionId, selectedDistrict, selectedSource, selectedInstitutionType]);
+
+  const handleResetFilters = () => {
+    setSelectedCollectionId('IC-2026-001');
+    setSelectedDistrict('all');
+    setSelectedSource('all');
+    setSelectedInstitutionType('all');
+    toast.info('Filters reset.');
+  };
 
   const statusTabs: TabItem[] = useMemo(() => [
     {
@@ -191,9 +211,10 @@ export const VerifySubmissions: React.FC = () => {
       if (s.status !== activeTab) return false;
       if (selectedDistrict !== 'all' && s.district !== selectedDistrict) return false;
       if (selectedSource !== 'all' && s.source !== selectedSource) return false;
+      if (selectedInstitutionType !== 'all' && s.institutionType !== selectedInstitutionType) return false;
       return true;
     });
-  }, [submissions, activeTab, selectedDistrict, selectedSource]);
+  }, [submissions, activeTab, selectedDistrict, selectedSource, selectedInstitutionType]);
 
   // Bulk Approve handler
   const handleBulkApprove = () => {
@@ -308,28 +329,47 @@ export const VerifySubmissions: React.FC = () => {
         />
       </KpiGrid>
 
-      {/* FILTER CONTROLS BAR */}
-      <div className="p-4 rounded-xl border border-border bg-card shadow-xs grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
-        <div>
+      {/* FILTER PANEL (Collapsible with saffron edge strip matching screenshot) */}
+      <FilterPanel
+        title="Filter Submissions (Level Verifier)"
+        hidden={isFilterHidden}
+        onHiddenChange={setIsFilterHidden}
+        appliedCount={appliedFilterCount}
+        floatingButton={false}
+        onSubmit={() => {}}
+        actions={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            leftIcon={RotateCcw}
+            onClick={handleResetFilters}
+            className="h-[34px]"
+          >
+            Reset Filters
+          </Button>
+        }
+      >
+        <div className="min-w-56 flex-1">
           <label className="text-xs font-semibold text-foreground block mb-1">
-            Information Collection <span className="text-red-500">*</span>
+            Collection
           </label>
           <select
             value={selectedCollectionId}
             onChange={(e) => setSelectedCollectionId(e.target.value)}
-            className="ui-field text-xs w-full"
+            className="ui-field text-xs w-full h-[34px]"
           >
             <option value="IC-2026-001">IC-2026-001 — Lab Equipment Census (Cycle 1)</option>
             <option value="IC-2026-003">IC-2026-003 — Faculty Census 2026 (Cycle 1)</option>
           </select>
         </div>
 
-        <div>
+        <div className="min-w-40 flex-1">
           <label className="text-xs font-semibold text-foreground block mb-1">District</label>
           <select
             value={selectedDistrict}
             onChange={(e) => setSelectedDistrict(e.target.value)}
-            className="ui-field text-xs w-full"
+            className="ui-field text-xs w-full h-[34px]"
           >
             <option value="all">All Districts</option>
             <option value="Khordha">Khordha</option>
@@ -338,32 +378,33 @@ export const VerifySubmissions: React.FC = () => {
           </select>
         </div>
 
-        <div>
+        <div className="min-w-40 flex-1">
           <label className="text-xs font-semibold text-foreground block mb-1">Source</label>
           <select
             value={selectedSource}
             onChange={(e) => setSelectedSource(e.target.value)}
-            className="ui-field text-xs w-full"
+            className="ui-field text-xs w-full h-[34px]"
           >
-            <option value="all">All Sources (Online & Offline)</option>
+            <option value="all">All Sources</option>
             <option value="Online">Online Only</option>
             <option value="Offline">Offline Only</option>
           </select>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="primary"
-            size="sm"
-            icon={<Check size={14} />}
-            disabled={selectedIds.length === 0}
-            onClick={handleBulkApprove}
-            className="w-full justify-center"
+        <div className="min-w-48 flex-1">
+          <label className="text-xs font-semibold text-foreground block mb-1">Institution Type</label>
+          <select
+            value={selectedInstitutionType}
+            onChange={(e) => setSelectedInstitutionType(e.target.value)}
+            className="ui-field text-xs w-full h-[34px]"
           >
-            Bulk Approve ({selectedIds.length})
-          </Button>
+            <option value="all">All Institution Types</option>
+            <option value="Government Autonomous">Government Autonomous</option>
+            <option value="Constituent College">Constituent College</option>
+            <option value="Aided Degree College">Aided Degree College</option>
+          </select>
         </div>
-      </div>
+      </FilterPanel>
 
       {/* SUBMISSIONS DATA TABLE inside Card */}
       <Card title="Submissions Pending Verification">
@@ -373,14 +414,30 @@ export const VerifySubmissions: React.FC = () => {
           columns={columns}
           rowKey={(r) => r.id}
           searchPlaceholder="Search institution name or code..."
+          filterToggle={{
+            hidden: isFilterHidden,
+            onToggle: () => setIsFilterHidden((prev) => !prev),
+            appliedCount: appliedFilterCount,
+          }}
           cardActions={
-            <div className="w-full">
+            <div className="w-full flex flex-wrap items-center justify-between gap-3">
               <Tabs
                 tabs={statusTabs}
                 activeTab={activeTab}
                 onChange={setActiveTab}
                 variant="pills"
               />
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<Check size={14} />}
+                  disabled={selectedIds.length === 0}
+                  onClick={handleBulkApprove}
+                >
+                  Bulk Approve ({selectedIds.length})
+                </Button>
+              </div>
             </div>
           }
         />

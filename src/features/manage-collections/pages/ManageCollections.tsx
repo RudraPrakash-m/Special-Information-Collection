@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/shared/components/layout/PageHeader';
 import Card from '@/shared/components/layout/Card';
-import { Button, DataTable, Modal, Tabs, type TabItem } from '@/shared/components/ui';
+import { Button, DataTable, FilterPanel, Modal, Tabs, type TabItem } from '@/shared/components/ui';
 import {
   INITIAL_COLLECTIONS,
   type InformationCollectionRecord,
@@ -19,7 +19,25 @@ export const ManageCollections: React.FC = () => {
   const [selectedCollection, setSelectedCollection] = useState<InformationCollectionRecord | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
+  const [filterFrequency, setFilterFrequency] = useState<string>('all');
+  const [filterApproval, setFilterApproval] = useState<string>('all');
+  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const appliedFilterCount = useMemo(() => {
+    let count = 0;
+    if (filterType !== 'all') count++;
+    if (filterFrequency !== 'all') count++;
+    if (filterApproval !== 'all') count++;
+    return count;
+  }, [filterType, filterFrequency, filterApproval]);
+
+  const handleResetFilters = () => {
+    setFilterType('all');
+    setFilterFrequency('all');
+    setFilterApproval('all');
+    toast.info('Filters reset.');
+  };
 
   // Modal states for SRS actions
   const [cyclesModalItem, setCyclesModalItem] = useState<InformationCollectionRecord | null>(null);
@@ -65,9 +83,16 @@ export const ManageCollections: React.FC = () => {
       if (filterType !== 'all' && item.collectionType !== filterType) {
         return false;
       }
+      if (filterFrequency !== 'all' && item.frequency?.toLowerCase() !== filterFrequency.toLowerCase()) {
+        return false;
+      }
+      if (filterApproval !== 'all') {
+        const req = filterApproval === 'yes';
+        if (item.approvalRequired !== req) return false;
+      }
       return true;
     });
-  }, [data, statusFilter, filterType]);
+  }, [data, statusFilter, filterType, filterFrequency, filterApproval]);
 
   const handleCopyLink = (record: InformationCollectionRecord) => {
     const slug = record.dedicatedSlug || record.id.toLowerCase();
@@ -260,6 +285,69 @@ export const ManageCollections: React.FC = () => {
         breadcrumbs={[{ label: 'Manage Collections' }]}
       />
 
+      <FilterPanel
+        title="Filter Collections"
+        hidden={isFilterHidden}
+        onHiddenChange={setIsFilterHidden}
+        appliedCount={appliedFilterCount}
+        floatingButton={false}
+        onSubmit={() => {}}
+        actions={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            leftIcon={RotateCcw}
+            onClick={handleResetFilters}
+            className="h-[34px]"
+          >
+            Reset Filters
+          </Button>
+        }
+      >
+        <div className="min-w-44 flex-1">
+          <label className="text-xs font-semibold text-foreground block mb-1">Collection Type</label>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="ui-field text-xs w-full h-[34px]"
+          >
+            <option value="all">All Types</option>
+            <option value="institution">Institution-specific</option>
+            <option value="scheme">Scheme-specific</option>
+            <option value="activity">Activity-specific</option>
+          </select>
+        </div>
+
+        <div className="min-w-44 flex-1">
+          <label className="text-xs font-semibold text-foreground block mb-1">Frequency</label>
+          <select
+            value={filterFrequency}
+            onChange={(e) => setFilterFrequency(e.target.value)}
+            className="ui-field text-xs w-full h-[34px]"
+          >
+            <option value="all">All Frequencies</option>
+            <option value="one-time">One-Time</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="half-yearly">Half-Yearly</option>
+            <option value="annual">Annual</option>
+          </select>
+        </div>
+
+        <div className="min-w-48 flex-1">
+          <label className="text-xs font-semibold text-foreground block mb-1">Approval Workflow</label>
+          <select
+            value={filterApproval}
+            onChange={(e) => setFilterApproval(e.target.value)}
+            className="ui-field text-xs w-full h-[34px]"
+          >
+            <option value="all">All Configurations</option>
+            <option value="yes">Multi-Level Approval Required</option>
+            <option value="no">Direct Acceptance (No Approval)</option>
+          </select>
+        </div>
+      </FilterPanel>
+
       <Card title="Departmental Information Collections">
         <DataTable
           caption="Departmental Information Collections"
@@ -267,6 +355,11 @@ export const ManageCollections: React.FC = () => {
           columns={columns}
           rowKey={(r) => r.id}
           searchPlaceholder="Search collection title, survey name, or ID..."
+          filterToggle={{
+            hidden: isFilterHidden,
+            onToggle: () => setIsFilterHidden((prev) => !prev),
+            appliedCount: appliedFilterCount,
+          }}
           cardActions={
             <div className="w-full">
               <div className="flex flex-wrap items-center justify-between gap-4 pb-3.5 border-b border-border -mt-1 -mx-5 px-5">
@@ -286,23 +379,6 @@ export const ManageCollections: React.FC = () => {
                   Create New Collection
                 </Button>
               </div>
-            </div>
-          }
-          filters={
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                Type:
-              </label>
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="ui-field !h-8 text-xs py-0 px-2 min-w-[140px] rounded-md"
-              >
-                <option value="all">All Types</option>
-                <option value="institution">Institution-specific</option>
-                <option value="scheme">Scheme-specific</option>
-                <option value="activity">Activity-specific</option>
-              </select>
             </div>
           }
         />

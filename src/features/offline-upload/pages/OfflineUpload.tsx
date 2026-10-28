@@ -22,14 +22,12 @@ interface OfflineUploadFormData {
   collectionId: string;
   excelFile: File | null;
   scannedLetter: File | null;
-  letterRef: string;
 }
 
 const INITIAL_FORM_DATA: OfflineUploadFormData = {
   collectionId: 'IC-2026-001',
   excelFile: null,
   scannedLetter: null,
-  letterRef: '',
 };
 
 // Eligible collections for offline upload (survey closed, allowOfflineUpload true)
@@ -51,7 +49,7 @@ const ELIGIBLE_COLLECTIONS = [
 ];
 
 const COLLECTION_OPTIONS = ELIGIBLE_COLLECTIONS.map((col) => ({
-  label: `${col.id} — ${col.title}`,
+  label: `${col.id} — ${col.title} (${col.cycle})`,
   value: col.id,
 }));
 
@@ -84,7 +82,6 @@ export const OfflineUpload: React.FC = () => {
       collectionId: formData.collectionId,
       excelFile: formData.excelFile,
       scannedLetter: formData.scannedLetter,
-      letterRef: formData.letterRef,
     });
     if (!valResult.isValid) {
       toast.error(valResult.error || 'Please fill in all mandatory fields.');
@@ -151,7 +148,6 @@ export const OfflineUpload: React.FC = () => {
       ...prev,
       excelFile: null,
       scannedLetter: null,
-      letterRef: '',
     }));
     setFormKey((k) => k + 1);
   };
@@ -161,7 +157,6 @@ export const OfflineUpload: React.FC = () => {
       collectionId: '',
       excelFile: null,
       scannedLetter: null,
-      letterRef: '',
     });
     setFormKey((k) => k + 1);
     setValidationReport(null);
@@ -184,20 +179,20 @@ export const OfflineUpload: React.FC = () => {
 
   const reportColumns = useMemo(() => getOfflineUploadColumns(), []);
 
-  // Map JSON configuration into dynamic 4-column fields matching the screenshot layout
+  // Map 4 fields placed side by side in ONE single row
   const dynamicFormFields: FormField[] = useMemo(() => {
     return (formFieldsJson as FormField[]).map((field) => {
-      // 1. Collection (Select dropdown, 4-col grid: col-span-12 sm:col-span-6 md:col-span-3)
+      // 1. Collection & Closed Cycle (Col 1 of single row)
       if (field.name === 'collectionId') {
         return {
           ...field,
           placeholder: '',
           render: (value: any, onChange: (val: any) => void, error?: string) => (
-            <div className="col-span-12 sm:col-span-6 md:col-span-3">
+            <div className="w-full col-span-1">
               <FieldInfoTooltip
-                label="Collection"
+                label="Collection & Closed Cycle"
                 required={true}
-                tooltipText="Select the information collection whose survey cycle is closed and accepts offline physical returns."
+                tooltipText="Lists collections with Allow Offline Upload enabled whose cycle survey is closed."
               />
               <SearchableSelect
                 options={COLLECTION_OPTIONS}
@@ -215,85 +210,15 @@ export const OfflineUpload: React.FC = () => {
         };
       }
 
-      // 2. Closed Survey Cycle (Read-only parameter display matching screenshot's "Staff Level: College")
-      if (field.name === 'cycle') {
-        return {
-          ...field,
-          render: () => (
-            <div className="col-span-12 sm:col-span-6 md:col-span-3">
-              <FieldInfoTooltip
-                label="Closed Survey Cycle"
-                tooltipText="The closed survey cycle for which offline physical returns are being ingested."
-              />
-              <input
-                type="text"
-                readOnly
-                value={selectedCollection?.cycle || ''}
-                placeholder="- Select collection -"
-                className="ui-field bg-[#fffbf2] dark:bg-amber-950/20 border-dashed border-amber-300/80 text-foreground font-medium cursor-not-allowed select-none"
-              />
-            </div>
-          ),
-        };
-      }
-
-      // 3. Survey Status (Read-only parameter display matching screenshot's "Staff Level: College")
-      if (field.name === 'surveyStatus') {
-        return {
-          ...field,
-          render: () => (
-            <div className="col-span-12 sm:col-span-6 md:col-span-3">
-              <FieldInfoTooltip
-                label="Survey Status"
-                tooltipText="Online survey status. Ingestion is only permitted for surveys closed to online submissions."
-              />
-              <input
-                type="text"
-                readOnly
-                value={selectedCollection?.surveyStatus || ''}
-                placeholder="- Select collection -"
-                className="ui-field bg-[#fffbf2] dark:bg-amber-950/20 border-dashed border-amber-300/80 text-foreground font-medium cursor-not-allowed select-none"
-              />
-            </div>
-          ),
-        };
-      }
-
-      // 4. Pending Defaulters (Read-only parameter display matching screenshot's "Staff Level: College")
-      if (field.name === 'pendingDefaulters') {
-        return {
-          ...field,
-          render: () => (
-            <div className="col-span-12 sm:col-span-6 md:col-span-3">
-              <FieldInfoTooltip
-                label="Pending Defaulters"
-                tooltipText="Count of eligible institutions that did not submit online prior to closure."
-              />
-              <input
-                type="text"
-                readOnly
-                value={
-                  selectedCollection
-                    ? `${selectedCollection.pendingDefaulters} Institutions`
-                    : ''
-                }
-                placeholder="- Select collection -"
-                className="ui-field bg-[#fffbf2] dark:bg-amber-950/20 border-dashed border-amber-300/80 text-foreground font-medium cursor-not-allowed select-none"
-              />
-            </div>
-          ),
-        };
-      }
-
-      // 5. Prescribed Excel Template (Template Action Button matching 4-column row height)
+      // 2. Prescribed Excel Template (Col 2 of single row)
       if (field.name === 'template') {
         return {
           ...field,
           render: () => (
-            <div className="col-span-12 sm:col-span-6 md:col-span-3">
+            <div className="w-full col-span-1">
               <FieldInfoTooltip
                 label="Prescribed Excel Template"
-                tooltipText="Download the pre-populated official template containing defaulter college codes and question validations."
+                tooltipText={`Pre-populated official template with ${selectedCollection?.pendingDefaulters ?? 16} institutions with status Not Submitted and validation rules as notes.`}
               />
               <Button
                 type="button"
@@ -302,23 +227,23 @@ export const OfflineUpload: React.FC = () => {
                 onClick={handleDownloadTemplate}
                 className="w-full h-[40px] justify-center text-xs font-semibold"
               >
-                Download (.xlsx)
+                Download Template (.xlsx)
               </Button>
             </div>
           ),
         };
       }
 
-      // 6. Filled Excel File (.xlsx) (File upload)
+      // 3. Filled Excel File (.xlsx) (Col 3 of single row)
       if (field.name === 'excelFile') {
         return {
           ...field,
           render: (value: any, onChange: (val: any) => void, error?: string) => (
-            <div className="col-span-12 sm:col-span-6 md:col-span-3">
+            <div className="w-full col-span-1">
               <FieldInfoTooltip
                 label="Filled Excel File (.xlsx)"
                 required={true}
-                tooltipText="Upload the completed offline Excel workbook in .xlsx format (max 10 MB)."
+                tooltipText="Select .xlsx file (max 10 MB). Upload completed offline Excel submission workbook."
               />
               <UploadFile
                 value={value}
@@ -334,16 +259,16 @@ export const OfflineUpload: React.FC = () => {
         };
       }
 
-      // 7. Scanned Supporting Letter (.pdf) (File upload)
+      // 4. Scanned Supporting Letter / Format (.pdf) (Col 4 of single row)
       if (field.name === 'scannedLetter') {
         return {
           ...field,
           render: (value: any, onChange: (val: any) => void, error?: string) => (
-            <div className="col-span-12 sm:col-span-6 md:col-span-3">
+            <div className="w-full col-span-1">
               <FieldInfoTooltip
-                label="Scanned Supporting Letter (.pdf)"
+                label="Scanned Supporting Letter / Format (.pdf)"
                 required={true}
-                tooltipText="Upload the signed official physical submission letter or government order in .pdf format (max 20 MB)."
+                tooltipText="Select official PDF copy (max 20 MB). Upload scanned copy of forwarding letter or physical format."
               />
               <UploadFile
                 value={value}
@@ -354,33 +279,6 @@ export const OfflineUpload: React.FC = () => {
                 accept=".pdf"
                 error={error}
               />
-            </div>
-          ),
-        };
-      }
-
-      // 8. Letter / Order Reference No. (Text input)
-      if (field.name === 'letterRef') {
-        return {
-          ...field,
-          render: (value: any, onChange: (val: any) => void, error?: string) => (
-            <div className="col-span-12 sm:col-span-6 md:col-span-3">
-              <FieldInfoTooltip
-                label="Letter / Order Ref No."
-                tooltipText="Official forwarding letter number, memo reference or order number for audit records."
-                exampleText="HED/OFFLINE/2026/894"
-              />
-              <input
-                type="text"
-                value={value ?? ''}
-                onChange={(e) => {
-                  onChange(e.target.value);
-                  setFormData((prev) => ({ ...prev, letterRef: e.target.value }));
-                }}
-                placeholder="e.g. HED/OFFLINE/2026/894"
-                className={`ui-field ${error ? 'ui-field--error' : ''}`}
-              />
-              {error && <p className="ui-error mt-1">{error}</p>}
             </div>
           ),
         };
@@ -397,38 +295,40 @@ export const OfflineUpload: React.FC = () => {
         breadcrumbs={[{ label: 'Offline Upload' }]}
       />
 
-      {/* MAIN UPLOAD CONFIGURATION CARD (matching the screenshot's card header with accent divider and 4-column layout) */}
+      {/* MAIN UPLOAD CONFIGURATION CARD: All fields in ONE single row */}
       <Card title="Upload Configuration & Supporting Documents">
-        <FormGenerator
-          key={formKey}
-          fields={dynamicFormFields}
-          defaultValues={formData}
-          onValuesChange={(vals) => setFormData((prev) => ({ ...prev, ...vals }))}
-          onSubmit={handleValidate}
-          gridColumns={12}
-        />
+        <form onSubmit={(e) => { e.preventDefault(); handleValidate(); }}>
+          <FormGenerator
+            key={formKey}
+            fields={dynamicFormFields}
+            defaultValues={formData}
+            onValuesChange={(vals) => setFormData((prev) => ({ ...prev, ...vals }))}
+            onSubmit={handleValidate}
+            standalone={true}
+            className="!grid-cols-1 md:!grid-cols-4 lg:!grid-cols-4"
+          />
 
-        {/* Action Button Bar: Inside Card at Bottom, Start Aligned */}
-        <div className="flex items-center justify-start gap-3 pt-5 border-t border-border mt-6">
-          <Button
-            type="button"
-            variant="outline"
-            leftIcon={RotateCcw}
-            onClick={handleReset}
-          >
-            Reset
-          </Button>
+          {/* Action Button Bar: Inside Card at Bottom, Start Aligned */}
+          <div className="flex items-center justify-start gap-3 pt-5 border-t border-border mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              leftIcon={RotateCcw}
+              onClick={handleReset}
+            >
+              Reset
+            </Button>
 
-          <Button
-            type="button"
-            variant="primary"
-            leftIcon={Upload}
-            loading={isValidating}
-            onClick={handleValidate}
-          >
-            Validate & Preview
-          </Button>
-        </div>
+            <Button
+              type="submit"
+              variant="primary"
+              leftIcon={Upload}
+              loading={isValidating}
+            >
+              Validate & Preview
+            </Button>
+          </div>
+        </form>
       </Card>
 
       {/* VALIDATION REPORT SECTION */}

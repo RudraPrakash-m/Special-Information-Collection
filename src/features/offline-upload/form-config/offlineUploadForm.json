@@ -1,59 +1,31 @@
 [
   {
     "name": "collectionId",
-    "label": "Collection",
+    "label": "Collection & Closed Cycle",
     "type": "select",
     "placeholder": "- Select -",
-    "gridColumn": 1,
+    "gridColumn": 3,
     "required": true
-  },
-  {
-    "name": "cycle",
-    "label": "Closed Survey Cycle",
-    "type": "text",
-    "gridColumn": 1,
-    "readOnly": true
-  },
-  {
-    "name": "surveyStatus",
-    "label": "Survey Status",
-    "type": "text",
-    "gridColumn": 1,
-    "readOnly": true
-  },
-  {
-    "name": "pendingDefaulters",
-    "label": "Pending Defaulters",
-    "type": "text",
-    "gridColumn": 1,
-    "readOnly": true
   },
   {
     "name": "template",
     "label": "Prescribed Excel Template",
-    "gridColumn": 1
+    "gridColumn": 3
   },
   {
     "name": "excelFile",
     "label": "Filled Excel File (.xlsx)",
     "type": "file",
     "accept": ".xlsx",
-    "gridColumn": 1,
+    "gridColumn": 3,
     "required": true
   },
   {
     "name": "scannedLetter",
-    "label": "Scanned Supporting Letter (.pdf)",
+    "label": "Scanned Supporting Letter / Format (.pdf)",
     "type": "file",
     "accept": ".pdf",
-    "gridColumn": 1,
+    "gridColumn": 3,
     "required": true
-  },
-  {
-    "name": "letterRef",
-    "label": "Letter / Order Ref No.",
-    "type": "text",
-    "placeholder": "e.g. HED/OFFLINE/2026/894",
-    "gridColumn": 1
   }
 ]
