@@ -4,7 +4,7 @@
     "label": "Data Capture Survey",
     "type": "select",
     "placeholder": "- Select Survey -",
-    "gridColumn": 6,
+    "gridColumn": 3,
     "required": true,
     "validation": {
       "required": true,
@@ -16,7 +16,7 @@
     "label": "Collection Title",
     "type": "text",
     "placeholder": "Enter collection title (max 200 characters)",
-    "gridColumn": 6,
+    "gridColumn": 3,
     "maxLength": 200,
     "required": true,
     "validation": {
@@ -28,7 +28,7 @@
     "name": "collectionType",
     "label": "Collection Type",
     "type": "radio-group",
-    "gridColumn": 6,
+    "gridColumn": 3,
     "orientation": "horizontal",
     "required": true,
     "options": [
@@ -46,7 +46,7 @@
     "label": "Scheme",
     "type": "select",
     "placeholder": "- Select Scheme -",
-    "gridColumn": 6,
+    "gridColumn": 3,
     "required": true,
     "options": [],
     "validation": {
@@ -58,7 +58,8 @@
     "name": "activityName",
     "label": "Activity Name",
     "type": "text",
-    "gridColumn": 6,
+    "placeholder": "Enter activity name",
+    "gridColumn": 3,
     "maxLength": 200,
     "required": true,
     "validation": {
@@ -70,6 +71,7 @@
     "name": "orderReference",
     "label": "Order / Letter Reference",
     "type": "text",
+    "placeholder": "Order/letter ref no.",
     "gridColumn": 3,
     "maxLength": 100
   },
@@ -78,8 +80,7 @@
     "label": "Reference Document",
     "type": "file",
     "gridColumn": 3,
-    "accept": ".pdf",
-    "helpText": "PDF, maximum 10 MB"
+    "accept": ".pdf"
   },
   {
     "name": "frequency",
@@ -104,6 +105,7 @@
     "name": "cycleDurationDays",
     "label": "Cycle Duration (Days)",
     "type": "number",
+    "placeholder": "Days (1-60)",
     "gridColumn": 3,
     "min": 1,
     "max": 60,
@@ -145,6 +147,7 @@
     "name": "correctionPeriodDays",
     "label": "Correction Period (Days)",
     "type": "number",
+    "placeholder": "Days (1-30)",
     "gridColumn": 3,
     "min": 1,
     "max": 30,
