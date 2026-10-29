@@ -24,6 +24,7 @@ import {
   getLinkStatus,
 } from '../types/dedicatedInterface.types';
 import { useCollectionStore } from '@/features/collection-store/CollectionStore';
+import { useConfirmDialog } from '@/features/collection-store/useConfirmDialog';
 import { toast } from 'sonner';
 import { getDedicatedInterfaceColumns, LINK_STATUS_HINT } from '../columns/dedicatedInterfaceColumns';
 import { validateDedicatedInterface } from '../validation/dedicatedInterfaceValidation';
@@ -70,6 +71,7 @@ export const ConfigureDedicatedInterface: React.FC = () => {
 
   // Empty initial form state (NO dummy prefilled texts)
   const [editingInterfaceId, setEditingInterfaceId] = useState<string | null>(null);
+  const { confirm, confirmDialog } = useConfirmDialog();
   const [isCopied, setIsCopied] = useState(false);
 
   const [formData, setFormData] = useState<{
@@ -480,8 +482,12 @@ export const ConfigureDedicatedInterface: React.FC = () => {
           ...field,
           placeholder: '',
           render: (value: any, onChange: (val: any) => void) => (
-            <div className="col-span-12 sm:col-span-6 md:col-span-3 flex flex-col justify-end min-h-[62px]">
-              <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer select-none pb-2">
+            <div className="col-span-12 sm:col-span-6 md:col-span-3">
+              <FieldInfoTooltip
+                label="Show as Dedicated Menu"
+                tooltipText={info?.tooltip || ''}
+              />
+              <label className="flex items-center gap-2 h-9 text-xs font-medium text-foreground cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={Boolean(value)}
@@ -491,12 +497,7 @@ export const ConfigureDedicatedInterface: React.FC = () => {
                   }}
                   className="ui-check"
                 />
-                <span>Show as Dedicated Menu</span>
-                <FieldInfoTooltip
-                  label=""
-                  tooltipText={info?.tooltip || ''}
-                  className="!mb-0 inline-flex"
-                />
+                <span>Show this link as a dedicated menu</span>
               </label>
             </div>
           ),
@@ -538,8 +539,21 @@ export const ConfigureDedicatedInterface: React.FC = () => {
   const tableColumns = useMemo(
     () =>
       getDedicatedInterfaceColumns({
-        onEdit: handleEdit,
-        onDelete: handleDelete,
+        onEdit: (r) =>
+          confirm({
+            title: 'Edit Dedicated Interface',
+            message: `Load the interface for "${r.collectionTitle}" into the form for editing?`,
+            confirmText: 'Edit',
+            onConfirm: () => handleEdit(r),
+          }),
+        onDelete: (id) =>
+          confirm({
+            title: 'Delete Dedicated Interface',
+            message: `Delete interface configuration ${id}? This cannot be undone.`,
+            confirmText: 'Delete',
+            type: 'danger',
+            onConfirm: () => handleDelete(id),
+          }),
         onCopyLink: (r) => {
           navigator.clipboard.writeText(r.dedicatedLink);
           toast.success('Dedicated portal link copied to clipboard!');
@@ -636,6 +650,8 @@ export const ConfigureDedicatedInterface: React.FC = () => {
           emptyDescription="Use the form above to configure a dedicated slug, instructions, and download formats for any collection."
         />
       </Card>
+
+      {confirmDialog}
     </div>
   );
 };

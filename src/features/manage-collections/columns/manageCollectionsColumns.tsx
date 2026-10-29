@@ -51,7 +51,7 @@ export const getManageCollectionsColumns = ({
     header: 'Collection Title',
     accessor: (r) => r.collectionTitle,
     cell: (r) => (
-      <span className="text-xs font-medium text-foreground line-clamp-1 block" title={r.collectionTitle}>
+      <span className="text-xs font-medium text-foreground truncate block max-w-50" title={r.collectionTitle}>
         {r.collectionTitle}
       </span>
     ),
@@ -62,7 +62,7 @@ export const getManageCollectionsColumns = ({
     accessor: (r) => r.surveyTitle,
     width: 'w-44',
     cell: (r) => (
-      <span className="text-xs text-foreground line-clamp-1 block" title={r.surveyTitle}>
+      <span className="text-xs text-foreground truncate block max-w-45" title={r.surveyTitle}>
         {r.surveyTitle}
       </span>
     ),

@@ -15,6 +15,7 @@ import { Button, DataTable } from '@/shared/components/ui';
 import { FormGenerator, type FormField } from '@/shared/components/ui/Forms';
 
 import { useCollectionStore } from '@/features/collection-store/CollectionStore';
+import { useConfirmDialog } from '@/features/collection-store/useConfirmDialog';
 import type { CollectionType, Frequency } from '@/features/manage-collections/types/manageCollections.types';
 
 const COLLECTION_TYPE_LABELS: Record<CollectionType, string> = {
@@ -107,6 +108,7 @@ export const ConfigureValidationRules: React.FC = () => {
 
   // Form State managed for FormGenerator
   const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
+  const { confirm, confirmDialog } = useConfirmDialog();
 
   // Helper to construct automatic failure message
   const generateErrorMessage = useCallback(
@@ -479,8 +481,21 @@ export const ConfigureValidationRules: React.FC = () => {
     () =>
       getValidationRulesColumns({
         surveyQuestions,
-        onEdit: handleEditRule,
-        onDelete: handleDeleteRule,
+        onEdit: (rule) =>
+          confirm({
+            title: 'Edit Validation Rule',
+            message: `Load rule ${rule.id} (${rule.questionCode}) into the form for editing?`,
+            confirmText: 'Edit',
+            onConfirm: () => handleEditRule(rule),
+          }),
+        onDelete: (ruleId) =>
+          confirm({
+            title: 'Delete Validation Rule',
+            message: `Delete validation rule ${ruleId}? This cannot be undone.`,
+            confirmText: 'Delete',
+            type: 'danger',
+            onConfirm: () => handleDeleteRule(ruleId),
+          }),
       }),
     [surveyQuestions]
   );
@@ -592,6 +607,8 @@ export const ConfigureValidationRules: React.FC = () => {
           emptyDescription="Use the form above to add cross-question comparisons, HIMS master checks, or format validations."
         />
       </Card>
+
+      {confirmDialog}
     </div>
   );
 };

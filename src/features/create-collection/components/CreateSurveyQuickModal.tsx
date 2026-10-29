@@ -80,7 +80,7 @@ export const CreateSurveyQuickModal: React.FC<CreateSurveyQuickModalProps> = ({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Higher Education NIRF Ranking & Student Support Census"
-            className="w-full text-sm px-3 py-2 rounded-md border bg-background"
+            className="ui-field"
           />
         </div>
 
@@ -92,7 +92,7 @@ export const CreateSurveyQuickModal: React.FC<CreateSurveyQuickModalProps> = ({
             type="text"
             value={targetInstitutions}
             onChange={(e) => setTargetInstitutions(e.target.value)}
-            className="w-full text-sm px-3 py-2 rounded-md border bg-background"
+            className="ui-field"
           />
         </div>
 
@@ -108,7 +108,7 @@ export const CreateSurveyQuickModal: React.FC<CreateSurveyQuickModalProps> = ({
               required
               value={questionCount}
               onChange={(e) => setQuestionCount(Number(e.target.value))}
-              className="w-full text-sm px-3 py-2 rounded-md border bg-background"
+              className="ui-field"
             />
           </div>
 
@@ -121,7 +121,7 @@ export const CreateSurveyQuickModal: React.FC<CreateSurveyQuickModalProps> = ({
               required
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full text-sm px-3 py-2 rounded-md border bg-background"
+              className="ui-field"
             />
           </div>
 
@@ -134,7 +134,7 @@ export const CreateSurveyQuickModal: React.FC<CreateSurveyQuickModalProps> = ({
               required
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full text-sm px-3 py-2 rounded-md border bg-background"
+              className="ui-field"
             />
           </div>
         </div>
@@ -145,7 +145,7 @@ export const CreateSurveyQuickModal: React.FC<CreateSurveyQuickModalProps> = ({
             <select
               value={himsModule}
               onChange={(e) => setHimsModule(e.target.value)}
-              className="w-full text-sm px-3 py-2 rounded-md border bg-background"
+              className="ui-field"
             >
               <option value={SURVEY_HIMS_MODULE}>{SURVEY_HIMS_MODULE}</option>
               <option value="General Administration">General Administration</option>
@@ -156,7 +156,7 @@ export const CreateSurveyQuickModal: React.FC<CreateSurveyQuickModalProps> = ({
             <select
               value={responderRole}
               onChange={(e) => setResponderRole(e.target.value)}
-              className="w-full text-sm px-3 py-2 rounded-md border bg-background"
+              className="ui-field"
             >
               <option value={SURVEY_RESPONDER_ROLE}>{SURVEY_RESPONDER_ROLE}</option>
               <option value="All Users">All Users</option>

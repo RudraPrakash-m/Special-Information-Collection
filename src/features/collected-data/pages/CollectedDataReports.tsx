@@ -103,7 +103,7 @@ export const CollectedDataReports: React.FC = () => {
   const [selectedCycle, setSelectedCycle] = useState<string>('Cycle 1 - Nov 2026');
   const [activeReportTab, setActiveReportTab] = useState<string>('consolidated');
   const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
-  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(false);
+  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(true);
 
   const appliedFilterCount = useMemo(() => {
     let count = 0;
@@ -217,7 +217,7 @@ export const CollectedDataReports: React.FC = () => {
       <Card title="Dataset Finalisation & Official Locking">
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
-            <div className="sm:col-span-2 md:col-span-2">
+            <div>
               <FieldInfoTooltip
                 label="Collection / Cycle"
                 required={true}
@@ -307,7 +307,7 @@ export const CollectedDataReports: React.FC = () => {
                 </Button>
               }
             >
-              <div className="min-w-48 flex-1">
+              <div className="w-full sm:w-64">
                 <label className="text-xs font-semibold text-foreground block mb-1">District</label>
                 <select
                   value={selectedDistrict}

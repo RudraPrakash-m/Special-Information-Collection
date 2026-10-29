@@ -7,6 +7,7 @@ import Card from '@/shared/components/layout/Card';
 import { Button, DataTable, FilterPanel, Modal, Tabs, type TabItem } from '@/shared/components/ui';
 import type { InformationCollectionRecord } from '../types/manageCollections.types';
 import { useCollectionStore } from '@/features/collection-store/CollectionStore';
+import { useConfirmDialog } from '@/features/collection-store/useConfirmDialog';
 import CollectionStatusBadge from '../components/CollectionStatusBadge';
 import { getManageCollectionsColumns } from '../columns/manageCollectionsColumns';
 import { validateExtendDeadline, validateCloseCollection } from '../validation/manageCollectionsValidation';
@@ -20,8 +21,9 @@ export const ManageCollections: React.FC = () => {
   const [filterType, setFilterType] = useState<string>('all');
   const [filterFrequency, setFilterFrequency] = useState<string>('all');
   const [filterApproval, setFilterApproval] = useState<string>('all');
-  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(false);
+  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const { confirm, confirmDialog } = useConfirmDialog();
 
   const appliedFilterCount = useMemo(() => {
     let count = 0;
@@ -257,9 +259,33 @@ export const ManageCollections: React.FC = () => {
     () =>
       getManageCollectionsColumns({
         onView: (r) => setSelectedCollection(r),
-        onEdit: (r) => navigate(`/information-collection/create-collection?edit=${r.id}`),
-        onPublish: (r) => handlePublish(r),
-        onDelete: (id) => handleDeleteDraft(id),
+        onEdit: (r) =>
+          confirm({
+            title: 'Edit Draft Collection',
+            message: <>Open <strong>{r.collectionTitle}</strong> for editing?</>,
+            confirmText: 'Edit',
+            onConfirm: () => navigate(`/information-collection/create-collection?edit=${r.id}`),
+          }),
+        onPublish: (r) =>
+          confirm({
+            title: 'Publish Collection',
+            message: (
+              <>
+                Publish <strong>{r.collectionTitle}</strong>? The dedicated link and the first cycle will be activated.
+              </>
+            ),
+            confirmText: 'Publish',
+            type: 'success',
+            onConfirm: () => handlePublish(r),
+          }),
+        onDelete: (id) =>
+          confirm({
+            title: 'Delete Draft Collection',
+            message: `Delete draft collection ${id}? The linked survey will be released. This cannot be undone.`,
+            confirmText: 'Delete',
+            type: 'danger',
+            onConfirm: () => handleDeleteDraft(id),
+          }),
         onExtend: (r) => {
           setExtendModalItem(r);
           setExtendDate(r.dueDate || '');
@@ -267,9 +293,26 @@ export const ManageCollections: React.FC = () => {
         onCycles: (r) => setCyclesModalItem(r),
         onModify: (r) => setModifyModalItem(r),
         onNewVersion: (r) =>
-          toast.info(`New Question Version for "${r.collectionTitle}" will duplicate the linked survey for editing.`),
+          confirm({
+            title: 'New Question Version',
+            message: (
+              <>
+                Create a new question version for <strong>{r.collectionTitle}</strong>? The linked survey will be
+                duplicated for editing.
+              </>
+            ),
+            confirmText: 'Create Version',
+            onConfirm: () =>
+              toast.info(`New Question Version for "${r.collectionTitle}" will duplicate the linked survey for editing.`),
+          }),
         onClose: (r) => setCloseModalItem(r),
-        onDuplicate: (r) => handleDuplicate(r),
+        onDuplicate: (r) =>
+          confirm({
+            title: 'Duplicate Collection',
+            message: <>Create a draft copy of <strong>{r.collectionTitle}</strong>?</>,
+            confirmText: 'Duplicate',
+            onConfirm: () => handleDuplicate(r),
+          }),
         onHistory: (r) => setHistoryModalItem(r),
         onRules: (id) => navigate(`/information-collection/validation-rules?collectionId=${id}`),
         onInterface: (id) => navigate(`/information-collection/dedicated-interface?collectionId=${id}`),
@@ -703,6 +746,8 @@ export const ManageCollections: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      {confirmDialog}
     </div>
   );
 };

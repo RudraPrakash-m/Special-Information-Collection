@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Plus, Trash2, AlertTriangle, UserCheck } from 'lucide-react';
 import { Button } from '@/shared/components/ui';
 import { MultiSelect, type Option } from '@/shared/components/ui/Forms';
+import { useConfirmDialog } from '@/features/collection-store/useConfirmDialog';
 import FieldInfoTooltip from './FieldInfoTooltip';
 import type { ApprovalLevel, HedAdminUser } from '../types/createCollection.types';
 
@@ -18,6 +19,8 @@ export const ApprovalLevelsBuilder: React.FC<ApprovalLevelsBuilderProps> = ({
   onChange,
   error,
 }) => {
+  const { confirm, confirmDialog } = useConfirmDialog();
+
   // Map of which user is assigned to which level
   const userAssignedInLevel = useMemo(() => {
     const map: Record<string, number> = {};
@@ -186,7 +189,15 @@ export const ApprovalLevelsBuilder: React.FC<ApprovalLevelsBuilderProps> = ({
                       size="sm"
                       className="w-full h-[calc(var(--control-h)*0.9)] text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-950/40"
                       icon={<Trash2 size={14} />}
-                      onClick={() => handleRemoveLevel(lvlIdx)}
+                      onClick={() =>
+                        confirm({
+                          title: 'Remove Approval Level',
+                          message: `Remove "${level.levelName}"? The levels after it will be renumbered.`,
+                          confirmText: 'Remove',
+                          type: 'danger',
+                          onConfirm: () => handleRemoveLevel(lvlIdx),
+                        })
+                      }
                     >
                       Remove Level
                     </Button>
@@ -201,6 +212,8 @@ export const ApprovalLevelsBuilder: React.FC<ApprovalLevelsBuilderProps> = ({
           );
         })}
       </div>
+
+      {confirmDialog}
     </div>
   );
 };

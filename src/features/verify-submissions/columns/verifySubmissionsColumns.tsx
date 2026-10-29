@@ -1,7 +1,8 @@
 import { Eye, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { ActionIcon } from '@/shared/components/ui';
+import { ActionIcon, Badge } from '@/shared/components/ui';
+import { Input } from '@/shared/components/ui/Forms';
 import type { Column } from '@/shared/components/ui/Table/DataTable';
-import type { SubmissionVerificationRecord } from '../types/verifySubmissions.types';
+import type { SubmissionVerificationRecord, VerificationAnswer } from '../types/verifySubmissions.types';
 
 export interface VerifySubmissionsColumnCallbacks {
   onVerify: (record: SubmissionVerificationRecord) => void;
@@ -93,6 +94,82 @@ export const getVerifySubmissionsColumns = ({
         icon={Eye}
         label="View & Verify Submission"
         onClick={() => onVerify(r)}
+      />
+    ),
+  },
+];
+
+export interface VerificationAnswerColumnCallbacks {
+  remarks: Record<string, string>;
+  onRemarkChange: (questionId: string, remark: string) => void;
+}
+
+/** Answers of one submission in the Verification Workspace, with the rule check and a per-answer remark. */
+export const getVerificationAnswerColumns = ({
+  remarks,
+  onRemarkChange,
+}: VerificationAnswerColumnCallbacks): Column<VerificationAnswer>[] => [
+  {
+    id: 'questionCode',
+    header: 'Code',
+    accessor: (a) => a.questionCode,
+    width: 'w-16',
+    cell: (a) => <span className="font-mono text-xs font-semibold text-foreground">{a.questionCode}</span>,
+  },
+  {
+    id: 'questionText',
+    header: 'Question',
+    accessor: (a) => a.questionText,
+    cell: (a) => (
+      <span className="text-xs font-medium text-foreground truncate block max-w-56" title={a.questionText}>
+        {a.questionText}
+      </span>
+    ),
+  },
+  {
+    id: 'answerValue',
+    header: 'Submitted Answer',
+    accessor: (a) => a.answerValue,
+    width: 'w-32',
+    cell: (a) => <span className="text-xs font-semibold text-foreground">{String(a.answerValue)}</span>,
+  },
+  {
+    id: 'himsMasterValue',
+    header: 'HIMS Master',
+    accessor: (a) => a.himsMasterValue ?? '',
+    width: 'w-32',
+    cell: (a) =>
+      a.himsMasterValue ? (
+        <span className="font-mono text-xs text-foreground">{a.himsMasterValue}</span>
+      ) : (
+        <span className="text-xs text-muted-foreground">—</span>
+      ),
+  },
+  {
+    id: 'ruleCheck',
+    header: 'Rule Check',
+    accessor: (a) => (a.isFlagged ? 'Flagged' : 'Clean'),
+    width: 'w-28',
+    cell: (a) =>
+      a.isFlagged ? (
+        <span title={a.flagRule}>
+          <Badge tone="warning" icon={AlertTriangle}>Flagged</Badge>
+        </span>
+      ) : (
+        <Badge tone="success" icon={CheckCircle2}>Clean</Badge>
+      ),
+  },
+  {
+    id: 'remark',
+    header: 'Remark',
+    width: 'w-56',
+    hideable: false,
+    cell: (a) => (
+      <Input
+        aria-label={`Remark for ${a.questionCode}`}
+        placeholder="Remark (optional)"
+        value={remarks[a.questionId] || ''}
+        onChange={(e) => onRemarkChange(a.questionId, e.target.value)}
       />
     ),
   },

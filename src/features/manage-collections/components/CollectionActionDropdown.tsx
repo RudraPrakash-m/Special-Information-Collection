@@ -169,7 +169,7 @@ export const CollectionActionDropdown: React.FC<CollectionActionDropdownProps> =
         {isOpen && (
           <div
             ref={menuRef}
-            className="absolute right-0 top-full mt-1 w-56 bg-popover border border-border rounded-lg shadow-lg py-1.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-100"
+            className="dt-popover absolute right-0 top-full mt-1 w-56 py-1.5 text-xs"
           >
             {menuActions.map((action) => {
               const ActionIconGlyph = action.icon;

@@ -20,6 +20,7 @@ import {
 } from '../columns/monitoringColumns';
 import { validateReminderNotification } from '../validation/monitoringValidation';
 import { useCollectionStore } from '@/features/collection-store/CollectionStore';
+import { useConfirmDialog } from '@/features/collection-store/useConfirmDialog';
 
 const INITIAL_PENDING_LIST: PendingVerificationItem[] = [
   {
@@ -116,10 +117,11 @@ export const CollectionMonitoring: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
   const [selectedInstitutionType, setSelectedInstitutionType] = useState<string>('all');
   const [selectedDefaulterIds, setSelectedDefaulterIds] = useState<string[]>([]);
-  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(false);
+  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(true);
 
   // Send Reminder is available only while the selected cycle is open (SRS 1.8)
   const { collections } = useCollectionStore();
+  const { confirm, confirmDialog } = useConfirmDialog();
   const isCycleOpen = useMemo(
     () =>
       collections
@@ -161,10 +163,18 @@ export const CollectionMonitoring: React.FC = () => {
       }
     }
     const count = target === 'selected' ? selectedDefaulterIds.length : INITIAL_DEFAULTER_LIST.length;
-    toast.success(
-      `Official reminder with dedicated portal link dispatched via Email & SMS to ${count} defaulting institution(s).`
-    );
-    setSelectedDefaulterIds([]);
+    confirm({
+      title: 'Send Reminder',
+      message: `Send the official reminder with the dedicated portal link via Email & SMS to ${count} defaulting institution(s)?`,
+      confirmText: 'Send Reminder',
+      type: 'warning',
+      onConfirm: () => {
+        toast.success(
+          `Official reminder with dedicated portal link dispatched via Email & SMS to ${count} defaulting institution(s).`
+        );
+        setSelectedDefaulterIds([]);
+      },
+    });
   };
 
   const pendingColumns = useMemo(() => getPendingVerificationColumns(), []);
@@ -177,9 +187,14 @@ export const CollectionMonitoring: React.FC = () => {
           if (checked) setSelectedDefaulterIds((prev) => [...prev, id]);
           else setSelectedDefaulterIds((prev) => prev.filter((item) => item !== id));
         },
-        onSendSingleReminder: (item) => {
-          toast.success(`Reminder notice dispatched to ${item.institutionName}.`);
-        },
+        onSendSingleReminder: (item) =>
+          confirm({
+            title: 'Send Reminder',
+            message: `Send a reminder notice to ${item.institutionName}?`,
+            confirmText: 'Send Reminder',
+            type: 'warning',
+            onConfirm: () => toast.success(`Reminder notice dispatched to ${item.institutionName}.`),
+          }),
         canSendReminder: isCycleOpen,
       }),
     [selectedDefaulterIds, isCycleOpen]
@@ -362,6 +377,8 @@ export const CollectionMonitoring: React.FC = () => {
           }
         />
       </Card>
+
+      {confirmDialog}
     </div>
   );
 };

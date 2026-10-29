@@ -11,10 +11,22 @@ import {
 import { toast } from 'sonner';
 import PageHeader from '@/shared/components/layout/PageHeader';
 import Card from '@/shared/components/layout/Card';
-import { Button, DataTable, FilterPanel, Tabs, Modal, KpiCard, KpiGrid, type TabItem } from '@/shared/components/ui';
+import { Alert, Button, DataTable, FilterPanel, Tabs, Modal, KpiCard, KpiGrid, type TabItem } from '@/shared/components/ui';
+import { FormGenerator, type FormField } from '@/shared/components/ui/Forms';
 import type { SubmissionVerificationRecord } from '../types/verifySubmissions.types';
-import { getVerifySubmissionsColumns } from '../columns/verifySubmissionsColumns';
+import { getVerifySubmissionsColumns, getVerificationAnswerColumns } from '../columns/verifySubmissionsColumns';
 import { validateVerificationAction } from '../validation/verifySubmissionsValidation';
+import { useConfirmDialog } from '@/features/collection-store/useConfirmDialog';
+
+type DecisionAction = 'Approve' | 'Return for Correction' | 'Reject';
+
+// Verification Workspace: read-only summary of the submission
+const SUMMARY_FIELDS: FormField[] = [
+  { name: 'institutionCode', label: 'AISHE Code', type: 'text', readOnly: true, gridColumn: 3 },
+  { name: 'districtType', label: 'District & Type', type: 'text', readOnly: true, gridColumn: 3 },
+  { name: 'receivedSource', label: 'Date & Source', type: 'text', readOnly: true, gridColumn: 3 },
+  { name: 'ruleFlags', label: 'Rule Flags', type: 'text', readOnly: true, gridColumn: 3 },
+];
 
 const INITIAL_VERIFICATION_SUBMISSIONS: SubmissionVerificationRecord[] = [
   {
@@ -153,7 +165,7 @@ export const VerifySubmissions: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [selectedInstitutionType, setSelectedInstitutionType] = useState<string>('all');
-  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(false);
+  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<string>('Pending');
 
   // Multi-select for bulk approve
@@ -161,10 +173,9 @@ export const VerifySubmissions: React.FC = () => {
 
   // Individual verification view state
   const [verifyingSubmission, setVerifyingSubmission] = useState<SubmissionVerificationRecord | null>(null);
-  const [decisionAction, setDecisionAction] = useState<'Approve' | 'Return for Correction' | 'Reject'>('Approve');
-  const [allowFullEdit, setAllowFullEdit] = useState<boolean>(false);
-  const [overallRemarks, setOverallRemarks] = useState<string>('');
+  const [decisionAction, setDecisionAction] = useState<DecisionAction>('Approve');
   const [answerRemarksMap, setAnswerRemarksMap] = useState<Record<string, string>>({});
+  const { confirm, confirmDialog } = useConfirmDialog();
 
   const appliedFilterCount = useMemo(() => {
     let count = 0;
@@ -229,27 +240,36 @@ export const VerifySubmissions: React.FC = () => {
       return;
     }
 
-    setSubmissions((prev) =>
-      prev.map((s) =>
-        selectedIds.includes(s.id)
-          ? { ...s, status: 'Approved', currentLevel: 'Approved (Final)' }
-          : s
-      )
-    );
-    toast.success(`Successfully approved ${selectedIds.length} submission(s) without flags.`);
-    setSelectedIds([]);
+    const ids = selectedIds;
+    confirm({
+      title: 'Bulk Approve',
+      message: `Approve ${ids.length} selected submission(s) without validation flags?`,
+      confirmText: 'Approve',
+      type: 'success',
+      onConfirm: () => {
+        setSubmissions((prev) =>
+          prev.map((s) =>
+            ids.includes(s.id)
+              ? { ...s, status: 'Approved', currentLevel: 'Approved (Final)' }
+              : s
+          )
+        );
+        toast.success(`Successfully approved ${ids.length} submission(s) without flags.`);
+        setSelectedIds([]);
+      },
+    });
   };
 
   const handleOpenVerify = (record: SubmissionVerificationRecord) => {
     setVerifyingSubmission(record);
     setDecisionAction(record.flagsCount > 0 ? 'Return for Correction' : 'Approve');
-    setAllowFullEdit(false);
-    setOverallRemarks('');
     setAnswerRemarksMap({});
   };
 
-  const handleSubmitDecision = () => {
+  const handleSubmitDecision = (values: Record<string, any>) => {
     if (!verifyingSubmission) return;
+    const decisionAction = values.decisionAction as DecisionAction;
+    const overallRemarks = String(values.overallRemarks ?? '');
 
     const valResult = validateVerificationAction({
       action: decisionAction === 'Return for Correction' ? 'Return' : decisionAction === 'Reject' ? 'Reject' : 'Approve',
@@ -267,23 +287,32 @@ export const VerifySubmissions: React.FC = () => {
         ? 'Returned'
         : 'Rejected';
 
-    setSubmissions((prev) =>
-      prev.map((s) =>
-        s.id === verifyingSubmission.id
-          ? {
-              ...s,
-              status: nextStatus as any,
-              overallRemarks,
-              currentLevel: decisionAction === 'Approve' ? 'Approved (Level 2)' : s.currentLevel,
-            }
-          : s
-      )
-    );
+    const submission = verifyingSubmission;
+    confirm({
+      title: 'Submit Decision',
+      message: `Record "${decisionAction}" for the submission from ${submission.institutionName}?`,
+      confirmText: 'Submit Decision',
+      type: decisionAction === 'Approve' ? 'success' : decisionAction === 'Reject' ? 'danger' : 'warning',
+      onConfirm: () => {
+        setSubmissions((prev) =>
+          prev.map((s) =>
+            s.id === submission.id
+              ? {
+                  ...s,
+                  status: nextStatus as any,
+                  overallRemarks,
+                  currentLevel: decisionAction === 'Approve' ? 'Approved (Level 2)' : s.currentLevel,
+                }
+              : s
+          )
+        );
 
-    toast.success(
-      `Submission for ${verifyingSubmission.institutionName} recorded as: ${decisionAction}`
-    );
-    setVerifyingSubmission(null);
+        toast.success(
+          `Submission for ${submission.institutionName} recorded as: ${decisionAction}`
+        );
+        setVerifyingSubmission(null);
+      },
+    });
   };
 
   const columns = useMemo(
@@ -293,6 +322,82 @@ export const VerifySubmissions: React.FC = () => {
       }),
     []
   );
+
+  const answerColumns = useMemo(
+    () =>
+      getVerificationAnswerColumns({
+        remarks: answerRemarksMap,
+        onRemarkChange: (questionId, remark) =>
+          setAnswerRemarksMap((prev) => ({ ...prev, [questionId]: remark })),
+      }),
+    [answerRemarksMap]
+  );
+
+  // Verification Workspace: read-only submission summary
+  const summaryDefaults = useMemo(
+    () =>
+      verifyingSubmission
+        ? {
+            institutionCode: verifyingSubmission.institutionCode,
+            districtType: `${verifyingSubmission.district} • ${verifyingSubmission.institutionType}`,
+            receivedSource: `${verifyingSubmission.receivedOn} (${verifyingSubmission.source})`,
+            ruleFlags: `${verifyingSubmission.flagsCount} Flag${verifyingSubmission.flagsCount === 1 ? '' : 's'} Found`,
+          }
+        : {},
+    [verifyingSubmission]
+  );
+
+  // Verification Workspace: verifier decision (Allow Full Edit only applies to Return for Correction)
+  const decisionDefaults = useMemo(
+    () => ({
+      decisionAction: verifyingSubmission && verifyingSubmission.flagsCount > 0 ? 'Return for Correction' : 'Approve',
+      allowFullEdit: false,
+      overallRemarks: '',
+    }),
+    [verifyingSubmission]
+  );
+
+  const decisionFields = useMemo<FormField[]>(
+    () => [
+      {
+        name: 'decisionAction',
+        label: 'Action Decision',
+        type: 'radio-group',
+        required: true,
+        orientation: 'horizontal',
+        gridColumn: 12,
+        options: [
+          { value: 'Approve', label: 'Approve Submission' },
+          { value: 'Return for Correction', label: 'Return for Correction' },
+          { value: 'Reject', label: 'Reject' },
+        ],
+      },
+      ...(decisionAction === 'Return for Correction'
+        ? [
+            {
+              name: 'allowFullEdit',
+              label: 'Allow Full Edit (institution can edit all answers, not only the remarked ones)',
+              type: 'checkbox',
+              gridColumn: 12,
+            } as FormField,
+          ]
+        : []),
+      {
+        name: 'overallRemarks',
+        label:
+          decisionAction === 'Approve'
+            ? 'Overall Verification Remarks'
+            : 'Overall Verification Remarks (mandatory for Return / Reject)',
+        type: 'textarea',
+        rows: 3,
+        gridColumn: 12,
+        placeholder: 'Record summary remarks for the institution and higher verification levels...',
+      },
+    ],
+    [decisionAction]
+  );
+
+  const flaggedAnswers = verifyingSubmission?.answers.filter((a) => a.isFlagged && a.flagRule) ?? [];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -451,178 +556,60 @@ export const VerifySubmissions: React.FC = () => {
           title={`Verification Workspace — ${verifyingSubmission.institutionName}`}
           size="4xl"
         >
-          <div className="p-4 space-y-6 text-sm">
-            {/* SUBMISSION HEADER SUMMARY */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-3 rounded-lg bg-muted/20 border border-border text-xs">
-              <div>
-                <span className="text-muted-foreground block">AISHE Code:</span>
-                <span className="font-mono font-bold text-foreground">{verifyingSubmission.institutionCode}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground block">District & Type:</span>
-                <span className="font-semibold text-foreground">{verifyingSubmission.district} &bull; {verifyingSubmission.institutionType}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground block">Date & Source:</span>
-                <span className="font-semibold text-foreground">{verifyingSubmission.receivedOn} ({verifyingSubmission.source})</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground block">Rule Flags:</span>
-                <span className={`font-bold ${verifyingSubmission.flagsCount > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
-                  {verifyingSubmission.flagsCount} Flags Found
-                </span>
-              </div>
-            </div>
+          <div className="p-4 space-y-6">
+            {/* SUBMISSION SUMMARY (read-only) */}
+            <Card title="Submission Details">
+              <FormGenerator
+                key={`summary-${verifyingSubmission.id}`}
+                formId="verify-summary-form"
+                fields={SUMMARY_FIELDS}
+                defaultValues={summaryDefaults}
+                onSubmit={() => {}}
+                gridColumns={12}
+              />
+            </Card>
 
-            {/* ANSWERS WITH VALIDATION FLAGS HIGHLIGHTED */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b pb-2">
-                Survey Answers & Validation Comparison
-              </h3>
-
-              <div className="space-y-3">
-                {verifyingSubmission.answers.map((ans) => (
-                  <div
-                    key={ans.questionId}
-                    className={`p-3 rounded-lg border text-xs space-y-2 ${
-                      ans.isFlagged
-                        ? 'border-amber-400 bg-amber-50/40 dark:bg-amber-950/20'
-                        : 'border-border bg-card'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-0.5">
-                        <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded bg-muted text-foreground">
-                          {ans.questionCode}
-                        </span>
-                        <span className="font-medium text-foreground ml-2">{ans.questionText}</span>
-                      </div>
-                      {ans.isFlagged && (
-                        <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 shrink-0">
-                          Flagged by Rule
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-dashed">
-                      <div>
-                        <span className="text-muted-foreground">Submitted Answer: </span>
-                        <strong className="text-foreground text-xs font-semibold">{String(ans.answerValue)}</strong>
-                      </div>
-                      {ans.himsMasterValue && (
-                        <div className="text-muted-foreground">
-                          Official HIMS Master: <span className="font-mono font-semibold text-foreground">{ans.himsMasterValue}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {ans.flagRule && (
-                      <div className="p-2 rounded bg-amber-100/60 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 text-[11px]">
-                        <strong>Violation:</strong> {ans.flagRule}
-                      </div>
-                    )}
-
-                    <div>
-                      <input
-                        type="text"
-                        placeholder="Add specific comment/remark for this answer (optional, max 500 chars)..."
-                        value={answerRemarksMap[ans.questionId] || ''}
-                        onChange={(e) =>
-                          setAnswerRemarksMap({
-                            ...answerRemarksMap,
-                            [ans.questionId]: e.target.value,
-                          })
-                        }
-                        maxLength={500}
-                        className="ui-field text-xs w-full mt-1"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* VERIFIER DECISION PANEL */}
-            <div className="p-4 rounded-lg border border-border bg-muted/10 space-y-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                Verifier Action & Findings
-              </h4>
-
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-foreground block">
-                  Action Decision <span className="text-red-500">*</span>
-                </label>
-                <div className="flex flex-wrap items-center gap-4 text-xs font-medium">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="decisionAction"
-                      value="Approve"
-                      checked={decisionAction === 'Approve'}
-                      onChange={() => setDecisionAction('Approve')}
-                      className="text-primary"
-                    />
-                    <span>Approve Submission</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="decisionAction"
-                      value="Return for Correction"
-                      checked={decisionAction === 'Return for Correction'}
-                      onChange={() => setDecisionAction('Return for Correction')}
-                      className="text-amber-600"
-                    />
-                    <span className="text-amber-700 dark:text-amber-400 font-bold">
-                      Return for Correction
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="decisionAction"
-                      value="Reject"
-                      checked={decisionAction === 'Reject'}
-                      onChange={() => setDecisionAction('Reject')}
-                      className="text-red-600"
-                    />
-                    <span className="text-red-600 dark:text-red-400 font-bold">Reject</span>
-                  </label>
-                </div>
-              </div>
-
-              {decisionAction === 'Return for Correction' && (
-                <div className="flex items-center gap-2 pt-1">
-                  <input
-                    type="checkbox"
-                    id="allowFullEdit"
-                    checked={allowFullEdit}
-                    onChange={(e) => setAllowFullEdit(e.target.checked)}
-                    className="rounded border-border"
-                  />
-                  <label htmlFor="allowFullEdit" className="text-xs font-medium text-foreground cursor-pointer">
-                    Allow Full Edit (Allows institution to edit all answers, not only the remarked ones)
-                  </label>
-                </div>
-              )}
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-foreground block">
-                  Overall Verification Remarks{' '}
-                  {(decisionAction === 'Return for Correction' || decisionAction === 'Reject') && (
-                    <span className="text-red-500">* (Mandatory for Return/Reject)</span>
-                  )}
-                </label>
-                <textarea
-                  rows={3}
-                  value={overallRemarks}
-                  onChange={(e) => setOverallRemarks(e.target.value)}
-                  placeholder="Record summary remarks for the institution and higher verification levels..."
-                  className="ui-field text-xs w-full"
-                  maxLength={1000}
+            {/* ANSWERS WITH VALIDATION FLAGS */}
+            <Card title="Survey Answers & Validation Comparison">
+              <div className="space-y-4">
+                {flaggedAnswers.length > 0 && (
+                  <Alert tone="warning" title={`${flaggedAnswers.length} answer(s) flagged by validation rules`}>
+                    <ul className="list-disc pl-4 space-y-0.5">
+                      {flaggedAnswers.map((ans) => (
+                        <li key={ans.questionId}>
+                          <strong>{ans.questionCode}:</strong> {ans.flagRule}
+                        </li>
+                      ))}
+                    </ul>
+                  </Alert>
+                )}
+                <DataTable
+                  caption="Survey Answers & Validation Comparison"
+                  data={verifyingSubmission.answers}
+                  columns={answerColumns}
+                  rowKey={(a) => a.questionId}
+                  searchPlaceholder="Search question..."
+                  emptyTitle="No answers recorded"
                 />
               </div>
-            </div>
+            </Card>
+
+            {/* VERIFIER DECISION */}
+            <Card title="Verifier Action & Findings">
+              <FormGenerator
+                key={`decision-${verifyingSubmission.id}`}
+                formId="verify-decision-form"
+                fields={decisionFields}
+                defaultValues={decisionDefaults}
+                onValuesChange={(values) => {
+                  if (values.decisionAction && values.decisionAction !== decisionAction) {
+                    setDecisionAction(values.decisionAction as DecisionAction);
+                  }
+                }}
+                onSubmit={handleSubmitDecision}
+                gridColumns={12}
+              />
+            </Card>
 
             {/* MODAL FOOTER BUTTONS */}
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
@@ -636,11 +623,11 @@ export const VerifySubmissions: React.FC = () => {
               </Button>
 
               <Button
-                type="button"
+                type="submit"
+                form="verify-decision-form"
                 variant="primary"
                 size="sm"
                 rightIcon={Send}
-                onClick={handleSubmitDecision}
               >
                 Submit Decision
               </Button>
@@ -648,6 +635,8 @@ export const VerifySubmissions: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      {confirmDialog}
     </div>
   );
 };

@@ -149,7 +149,7 @@ export const MyCollections: React.FC = () => {
   const [items, setItems] = useState<MyCollectionItem[]>(INITIAL_MY_COLLECTIONS);
   const [activeTab, setActiveTab] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
-  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(false);
+  const [isFilterHidden, setIsFilterHidden] = useState<boolean>(true);
   const [selectedForCorrection, setSelectedForCorrection] = useState<MyCollectionItem | null>(null);
   const [viewingItem, setViewingItem] = useState<MyCollectionItem | null>(null);
   const [correctionAnswers, setCorrectionAnswers] = useState<Record<string, any>>({});
@@ -444,7 +444,7 @@ export const MyCollections: React.FC = () => {
               </Button>
             }
           >
-            <div className="min-w-48 flex-1">
+            <div className="w-full sm:w-64">
               <label className="text-xs font-semibold text-foreground block mb-1">Collection Type</label>
               <select
                 value={filterType}
