@@ -1,13 +1,32 @@
 import { Edit2, Trash2, ExternalLink, Copy } from 'lucide-react';
-import { ActionIcon } from '@/shared/components/ui';
+import { ActionIcon, Badge, type BadgeTone } from '@/shared/components/ui';
 import type { Column } from '@/shared/components/ui/Table/DataTable';
-import type { DedicatedInterfaceConfig } from '../types/dedicatedInterface.types';
+import type { CollectionStatus } from '@/features/manage-collections/types/manageCollections.types';
+import {
+  getLinkStatus,
+  type DedicatedInterfaceConfig,
+  type LinkStatus,
+} from '../types/dedicatedInterface.types';
+
+const LINK_STATUS_TONE: Record<LinkStatus, BadgeTone> = {
+  Active: 'success',
+  Inactive: 'warning',
+  Closed: 'neutral',
+};
+
+export const LINK_STATUS_HINT: Record<LinkStatus, string> = {
+  Active: 'Link is active: the collection is published.',
+  Inactive: 'Activates when the collection is published.',
+  Closed: 'Collection is closed.',
+};
 
 export interface DedicatedInterfaceColumnCallbacks {
   onEdit: (record: DedicatedInterfaceConfig) => void;
   onDelete: (id: string) => void;
   onCopyLink: (record: DedicatedInterfaceConfig) => void;
   onPreview: (linkName: string) => void;
+  /** Status of the linked collection; the link status follows it. */
+  getCollectionStatus: (collectionId: string) => CollectionStatus | undefined;
 }
 
 export const getDedicatedInterfaceColumns = ({
@@ -15,6 +34,7 @@ export const getDedicatedInterfaceColumns = ({
   onDelete,
   onCopyLink,
   onPreview,
+  getCollectionStatus,
 }: DedicatedInterfaceColumnCallbacks): Column<DedicatedInterfaceConfig>[] => [
   {
     id: 'slNo',
@@ -68,20 +88,26 @@ export const getDedicatedInterfaceColumns = ({
     ),
   },
   {
-    id: 'status',
-    header: 'Status',
-    width: 'w-24',
-    cell: (r) => (
-      <span className="text-xs font-medium text-foreground capitalize">
-        {r.status}
-      </span>
-    ),
+    id: 'linkStatus',
+    header: 'Link Status',
+    width: 'w-28',
+    accessor: (r) => getLinkStatus(getCollectionStatus(r.collectionId)),
+    cell: (r) => {
+      const status = getLinkStatus(getCollectionStatus(r.collectionId));
+      return (
+        <Badge tone={LINK_STATUS_TONE[status]} size="sm" dot title={LINK_STATUS_HINT[status]}>
+          {status}
+        </Badge>
+      );
+    },
   },
   {
     id: 'actions',
     header: 'Actions',
     width: 'w-40',
-    cell: (r) => (
+    cell: (r) => {
+      const linkActive = getLinkStatus(getCollectionStatus(r.collectionId)) === 'Active';
+      return (
       <div className="flex items-center gap-1">
         <ActionIcon
           tone="info"
@@ -92,7 +118,8 @@ export const getDedicatedInterfaceColumns = ({
         <ActionIcon
           tone="secondary"
           icon={Copy}
-          label="Copy Link"
+          label={linkActive ? 'Copy Link' : 'Copy Link (link is active after the collection is published)'}
+          disabled={!linkActive}
           onClick={() => onCopyLink(r)}
         />
         <ActionIcon
@@ -108,6 +135,7 @@ export const getDedicatedInterfaceColumns = ({
           onClick={() => onDelete(r.id)}
         />
       </div>
-    ),
+      );
+    },
   },
 ];

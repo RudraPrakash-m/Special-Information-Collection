@@ -57,12 +57,15 @@ export interface DefaulterColumnsCallbacks {
   selectedDefaulters: string[];
   onToggleSelect: (id: string, checked: boolean) => void;
   onSendSingleReminder: (item: DefaulterItem) => void;
+  /** Reminders can be sent only while the selected cycle is open. */
+  canSendReminder: boolean;
 }
 
 export const getDefaulterColumns = ({
   selectedDefaulters,
   onToggleSelect,
   onSendSingleReminder,
+  canSendReminder,
 }: DefaulterColumnsCallbacks): Column<DefaulterItem>[] => [
   {
     id: 'select',
@@ -150,7 +153,8 @@ export const getDefaulterColumns = ({
       <ActionIcon
         tone="warning"
         icon={Bell}
-        label="Send Reminder Notice"
+        label={canSendReminder ? 'Send Reminder Notice' : 'Send Reminder (cycle is not open)'}
+        disabled={!canSendReminder}
         onClick={() => onSendSingleReminder(r)}
       />
     ),

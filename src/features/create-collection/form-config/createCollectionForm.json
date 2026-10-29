@@ -4,7 +4,7 @@
     "label": "Data Capture Survey",
     "type": "select",
     "placeholder": "- Select Survey -",
-    "gridColumn": 3,
+    "gridColumn": 6,
     "required": true,
     "validation": {
       "required": true,
@@ -21,17 +21,15 @@
     "required": true,
     "validation": {
       "required": true,
-      "minLength": 3,
-      "maxLength": 200,
-      "message": "Collection Title is mandatory (max 200 characters)"
+      "message": "Collection Title is mandatory"
     }
   },
   {
     "name": "collectionType",
     "label": "Collection Type",
-    "type": "select",
-    "placeholder": "- Select -",
-    "gridColumn": 3,
+    "type": "radio-group",
+    "gridColumn": 6,
+    "orientation": "horizontal",
     "required": true,
     "options": [
       { "label": "Institution-specific", "value": "institution" },
@@ -48,21 +46,25 @@
     "label": "Scheme",
     "type": "select",
     "placeholder": "- Select Scheme -",
-    "gridColumn": 3,
-    "options": [
-      { "label": "Mo College Abhijan Scheme (MCA-2026)", "value": "SCH-01" },
-      { "label": "State Higher Education Innovation Fund (SHEIF-02)", "value": "SCH-02" },
-      { "label": "Odisha State Merit Scholarship Programme (OSMSP-04)", "value": "SCH-03" },
-      { "label": "World Bank Higher Education Modernisation Project (WB-HEMP)", "value": "SCH-04" },
-      { "label": "State Research & Laboratory Upgrade Grant (SRLUG-26)", "value": "SCH-05" }
-    ]
+    "gridColumn": 6,
+    "required": true,
+    "options": [],
+    "validation": {
+      "required": true,
+      "message": "Scheme is mandatory for a Scheme-specific collection"
+    }
   },
   {
     "name": "activityName",
     "label": "Activity Name",
     "type": "text",
-    "gridColumn": 3,
-    "maxLength": 200
+    "gridColumn": 6,
+    "maxLength": 200,
+    "required": true,
+    "validation": {
+      "required": true,
+      "message": "Activity Name is mandatory for an Activity-specific collection"
+    }
   },
   {
     "name": "orderReference",
@@ -76,7 +78,8 @@
     "label": "Reference Document",
     "type": "file",
     "gridColumn": 3,
-    "accept": ".pdf"
+    "accept": ".pdf",
+    "helpText": "PDF, maximum 10 MB"
   },
   {
     "name": "frequency",
@@ -103,7 +106,12 @@
     "type": "number",
     "gridColumn": 3,
     "min": 1,
-    "max": 60
+    "max": 60,
+    "required": true,
+    "validation": {
+      "required": true,
+      "message": "Cycle Duration is mandatory for a recurring collection"
+    }
   },
   {
     "name": "recurrenceEndDate",
@@ -114,9 +122,9 @@
   {
     "name": "approvalRequired",
     "label": "Approval Required",
-    "type": "select",
-    "placeholder": "- Select -",
+    "type": "radio-group",
     "gridColumn": 3,
+    "orientation": "horizontal",
     "required": true,
     "options": [
       { "label": "Yes", "value": "yes" },
@@ -130,13 +138,8 @@
   {
     "name": "allowReturnForCorrection",
     "label": "Allow Return for Correction",
-    "type": "select",
-    "placeholder": "- Select -",
-    "gridColumn": 3,
-    "options": [
-      { "label": "Yes", "value": "yes" },
-      { "label": "No", "value": "no" }
-    ]
+    "type": "checkbox",
+    "gridColumn": 3
   },
   {
     "name": "correctionPeriodDays",
@@ -144,18 +147,17 @@
     "type": "number",
     "gridColumn": 3,
     "min": 1,
-    "max": 30
+    "max": 30,
+    "required": true,
+    "validation": {
+      "required": true,
+      "message": "Correction Period is mandatory"
+    }
   },
   {
     "name": "allowOfflineUpload",
     "label": "Allow Offline Upload",
-    "type": "select",
-    "placeholder": "- Select -",
-    "gridColumn": 3,
-    "options": [
-      { "label": "No", "value": "no" },
-      { "label": "Yes", "value": "yes" }
-    ]
+    "type": "checkbox",
+    "gridColumn": 3
   }
 ]
-

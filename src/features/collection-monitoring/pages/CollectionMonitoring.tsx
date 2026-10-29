@@ -19,6 +19,7 @@ import {
   getDefaulterColumns,
 } from '../columns/monitoringColumns';
 import { validateReminderNotification } from '../validation/monitoringValidation';
+import { useCollectionStore } from '@/features/collection-store/CollectionStore';
 
 const INITIAL_PENDING_LIST: PendingVerificationItem[] = [
   {
@@ -117,6 +118,17 @@ export const CollectionMonitoring: React.FC = () => {
   const [selectedDefaulterIds, setSelectedDefaulterIds] = useState<string[]>([]);
   const [isFilterHidden, setIsFilterHidden] = useState<boolean>(false);
 
+  // Send Reminder is available only while the selected cycle is open (SRS 1.8)
+  const { collections } = useCollectionStore();
+  const isCycleOpen = useMemo(
+    () =>
+      collections
+        .find((c) => c.id === selectedCollectionId)
+        ?.cycles?.find((cycle) => cycle.cycleName === selectedCycle)?.status === 'Active',
+    [collections, selectedCollectionId, selectedCycle]
+  );
+  const reminderClosedReason = 'Reminders can be sent only while the cycle is open';
+
   const appliedFilterCount = useMemo(() => {
     let count = 0;
     if (selectedCollectionId !== 'IC-2026-001') count++;
@@ -168,8 +180,9 @@ export const CollectionMonitoring: React.FC = () => {
         onSendSingleReminder: (item) => {
           toast.success(`Reminder notice dispatched to ${item.institutionName}.`);
         },
+        canSendReminder: isCycleOpen,
       }),
-    [selectedDefaulterIds]
+    [selectedDefaulterIds, isCycleOpen]
   );
 
   return (
@@ -322,7 +335,8 @@ export const CollectionMonitoring: React.FC = () => {
                 icon={<Send size={13} />}
                 className="!bg-[#f59f0a] hover:!bg-[#d97706] text-white border-none shadow-xs"
                 onClick={() => handleSendReminder('selected')}
-                disabled={selectedDefaulterIds.length === 0}
+                disabled={!isCycleOpen || selectedDefaulterIds.length === 0}
+                title={isCycleOpen ? undefined : reminderClosedReason}
               >
                 Send Reminder to Selected ({selectedDefaulterIds.length})
               </Button>
@@ -331,6 +345,8 @@ export const CollectionMonitoring: React.FC = () => {
                 size="sm"
                 icon={<Bell size={13} />}
                 onClick={() => handleSendReminder('all')}
+                disabled={!isCycleOpen}
+                title={isCycleOpen ? undefined : reminderClosedReason}
               >
                 Send Reminder to All Pending Defaulters
               </Button>

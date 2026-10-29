@@ -225,7 +225,7 @@ export const OfflineUpload: React.FC = () => {
                 variant="outline"
                 leftIcon={Download}
                 onClick={handleDownloadTemplate}
-                className="w-full h-[40px] justify-center text-xs font-semibold"
+                className="w-full h-[36px] justify-center text-xs font-semibold"
               >
                 Download Template (.xlsx)
               </Button>
@@ -266,7 +266,7 @@ export const OfflineUpload: React.FC = () => {
           render: (value: any, onChange: (val: any) => void, error?: string) => (
             <div className="w-full col-span-1">
               <FieldInfoTooltip
-                label="Scanned Supporting Letter / Format (.pdf)"
+                label="Scanned Supporting Letter / Format"
                 required={true}
                 tooltipText="Select official PDF copy (max 20 MB). Upload scanned copy of forwarding letter or physical format."
               />

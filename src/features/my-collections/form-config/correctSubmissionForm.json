@@ -1,0 +1,12 @@
+[
+  {
+    "name": "correctionRemarks",
+    "label": "Correction Remarks",
+    "type": "textarea",
+    "placeholder": "Describe changes made to the returned answers...",
+    "gridColumn": 12,
+    "rows": 2,
+    "maxLength": 1000,
+    "helpText": "Optional, max 1000 characters"
+  }
+]

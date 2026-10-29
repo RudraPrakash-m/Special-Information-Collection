@@ -12,6 +12,8 @@ import {
   Globe,
   XCircle,
   Send,
+  FilePlus2,
+  type LucideIcon,
 } from 'lucide-react';
 import { ActionIcon } from '@/shared/components/ui';
 import type { InformationCollectionRecord } from '../types/manageCollections.types';
@@ -25,6 +27,7 @@ interface CollectionActionDropdownProps {
   onExtend?: () => void;
   onCycles?: () => void;
   onModify?: () => void;
+  onNewVersion?: () => void;
   onClose?: () => void;
   onDuplicate?: () => void;
   onHistory?: () => void;
@@ -32,6 +35,20 @@ interface CollectionActionDropdownProps {
   onInterface?: () => void;
 }
 
+interface MenuAction {
+  label: string;
+  icon: LucideIcon;
+  onSelect?: () => void;
+  enabled: boolean;
+  /** Why the action is disabled (shown as tooltip). */
+  reason?: string;
+  danger?: boolean;
+}
+
+/**
+ * Row actions of Manage Collections (SRS 1.4). Every action is always shown; actions that do not apply to the
+ * collection's status are disabled, with the reason as tooltip.
+ */
 export const CollectionActionDropdown: React.FC<CollectionActionDropdownProps> = ({
   record,
   onView,
@@ -41,6 +58,7 @@ export const CollectionActionDropdown: React.FC<CollectionActionDropdownProps> =
   onExtend,
   onCycles,
   onModify,
+  onNewVersion,
   onClose,
   onDuplicate,
   onHistory,
@@ -53,6 +71,8 @@ export const CollectionActionDropdown: React.FC<CollectionActionDropdownProps> =
 
   const isDraft = record.status === 'Draft';
   const isPublished = record.status === 'Published' || record.status === 'Active';
+  const isClosed = record.status === 'Closed';
+  const isRecurring = record.frequency !== 'one-time';
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -76,65 +96,67 @@ export const CollectionActionDropdown: React.FC<CollectionActionDropdownProps> =
     if (cb) cb();
   };
 
+  const menuActions: MenuAction[] = [
+    { label: 'Configure Rules', icon: ShieldCheck, onSelect: onRules, enabled: !isClosed, reason: 'Not available for a closed collection' },
+    { label: 'Dedicated Interface', icon: Globe, onSelect: onInterface, enabled: !isClosed, reason: 'Not available for a closed collection' },
+    { label: 'Duplicate Collection', icon: Copy, onSelect: onDuplicate, enabled: true },
+    { label: 'Version History', icon: History, onSelect: onHistory, enabled: true },
+    { label: 'Modify (New Version)', icon: Edit, onSelect: onModify, enabled: isPublished, reason: 'Published collections only' },
+    { label: 'New Question Version', icon: FilePlus2, onSelect: onNewVersion, enabled: isPublished, reason: 'Published collections only' },
+    { label: 'Close Collection', icon: XCircle, onSelect: onClose, enabled: isPublished, reason: 'Published collections only', danger: true },
+  ];
+
   return (
     <div className="relative inline-flex items-center gap-1">
-      {/* 1. View icon button (always available) */}
+      <ActionIcon tone="primary" icon={Eye} label="View details" onClick={onView} />
+
       <ActionIcon
-        tone="primary"
-        icon={Eye}
-        label="View details"
-        onClick={onView}
+        tone="success"
+        icon={Send}
+        label={isDraft ? 'Publish collection' : 'Publish (Draft collections only)'}
+        disabled={!isDraft}
+        onClick={onPublish}
       />
 
-      {/* 2. Draft action icons: Publish & Edit */}
-      {isDraft && onPublish && (
-        <ActionIcon
-          tone="success"
-          icon={Send}
-          label="Publish collection"
-          onClick={onPublish}
-        />
-      )}
+      <ActionIcon
+        tone="warning"
+        icon={Edit}
+        label={isDraft ? 'Edit draft' : 'Edit (Draft collections only)'}
+        disabled={!isDraft}
+        onClick={onEdit}
+      />
 
-      {isDraft && onEdit && (
-        <ActionIcon
-          tone="warning"
-          icon={Edit}
-          label="Edit draft"
-          onClick={onEdit}
-        />
-      )}
+      <ActionIcon
+        tone="info"
+        icon={RotateCw}
+        label={
+          !isRecurring
+            ? 'Cycles (recurring collections only)'
+            : isDraft
+              ? 'Cycles (created when the collection is published)'
+              : 'Manage recurring cycles'
+        }
+        disabled={!isRecurring || isDraft}
+        onClick={onCycles}
+      />
 
-      {/* 3. Published action icons: Cycles & Extend */}
-      {isPublished && onCycles && (
-        <ActionIcon
-          tone="info"
-          icon={RotateCw}
-          label="Manage recurring cycles"
-          onClick={onCycles}
-        />
-      )}
+      <ActionIcon
+        tone="secondary"
+        icon={Calendar}
+        label={isPublished ? 'Extend due date' : 'Extend due date (Published collections only)'}
+        disabled={!isPublished}
+        onClick={onExtend}
+      />
 
-      {isPublished && onExtend && (
-        <ActionIcon
-          tone="secondary"
-          icon={Calendar}
-          label="Extend deadline"
-          onClick={onExtend}
-        />
-      )}
+      <ActionIcon
+        tone="danger"
+        icon={Trash2}
+        label={isDraft ? 'Delete draft' : 'Delete (Draft collections only)'}
+        disabled={!isDraft}
+        onClick={onDelete}
+      />
 
-      {/* 4. Delete icon for draft */}
-      {isDraft && onDelete && (
-        <ActionIcon
-          tone="danger"
-          icon={Trash2}
-          label="Delete draft"
-          onClick={onDelete}
-        />
-      )}
-
-      {/* 5. More actions icon button (3 dots) */}
+      {/* More actions (3 dots) */}
       <div className="relative">
         <ActionIcon
           ref={buttonRef}
@@ -147,73 +169,26 @@ export const CollectionActionDropdown: React.FC<CollectionActionDropdownProps> =
         {isOpen && (
           <div
             ref={menuRef}
-            className="absolute right-0 top-full mt-1 w-52 bg-popover border border-border rounded-lg shadow-lg py-1.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-100"
+            className="absolute right-0 top-full mt-1 w-56 bg-popover border border-border rounded-lg shadow-lg py-1.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-100"
           >
-            {onRules && (
-              <button
-                type="button"
-                onClick={() => handleAction(onRules)}
-                className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-muted text-foreground text-left"
-              >
-                <ShieldCheck size={14} className="text-muted-foreground" />
-                <span>Configure Rules</span>
-              </button>
-            )}
-
-            {onInterface && (
-              <button
-                type="button"
-                onClick={() => handleAction(onInterface)}
-                className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-muted text-foreground text-left"
-              >
-                <Globe size={14} className="text-muted-foreground" />
-                <span>Dedicated Interface</span>
-              </button>
-            )}
-
-            {onDuplicate && (
-              <button
-                type="button"
-                onClick={() => handleAction(onDuplicate)}
-                className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-muted text-foreground text-left"
-              >
-                <Copy size={14} className="text-muted-foreground" />
-                <span>Duplicate Collection</span>
-              </button>
-            )}
-
-            {onHistory && (
-              <button
-                type="button"
-                onClick={() => handleAction(onHistory)}
-                className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-muted text-foreground text-left"
-              >
-                <History size={14} className="text-muted-foreground" />
-                <span>Version History</span>
-              </button>
-            )}
-
-            {isPublished && onModify && (
-              <button
-                type="button"
-                onClick={() => handleAction(onModify)}
-                className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-muted text-foreground text-left"
-              >
-                <Edit size={14} className="text-muted-foreground" />
-                <span>Modify (New Version)</span>
-              </button>
-            )}
-
-            {isPublished && onClose && (
-              <button
-                type="button"
-                onClick={() => handleAction(onClose)}
-                className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-muted text-rose-600 text-left border-t border-border mt-1 pt-1.5"
-              >
-                <XCircle size={14} />
-                <span>Close Collection</span>
-              </button>
-            )}
+            {menuActions.map((action) => {
+              const ActionIconGlyph = action.icon;
+              return (
+                <button
+                  key={action.label}
+                  type="button"
+                  disabled={!action.enabled}
+                  title={action.enabled ? undefined : action.reason}
+                  onClick={() => handleAction(action.onSelect)}
+                  className={`w-full flex items-center gap-2 px-3 py-1.5 text-left ${
+                    action.danger ? 'text-rose-600 border-t border-border mt-1 pt-1.5' : 'text-foreground'
+                  } ${action.enabled ? 'hover:bg-muted' : 'opacity-50 cursor-not-allowed'}`}
+                >
+                  <ActionIconGlyph size={14} className={action.danger ? '' : 'text-muted-foreground'} />
+                  <span>{action.label}</span>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

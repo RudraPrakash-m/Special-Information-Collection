@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { store } from '@/app/store';
 import { ThemeProvider, StatusModalProvider } from '@/config/theme';
 import { I18nProvider } from '@/shared/i18n/I18nProvider';
+import { CollectionStoreProvider } from '@/features/collection-store/CollectionStore';
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -18,7 +19,7 @@ export const AppProviders: React.FC<Readonly<AppProvidersProps>> = ({ children }
           <StatusModalProvider>
             <BrowserRouter>
               <Toaster position="top-right" richColors closeButton duration={2000} />
-              {children}
+              <CollectionStoreProvider>{children}</CollectionStoreProvider>
             </BrowserRouter>
           </StatusModalProvider>
         </I18nProvider>

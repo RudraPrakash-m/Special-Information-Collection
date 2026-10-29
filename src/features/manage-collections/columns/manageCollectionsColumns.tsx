@@ -12,6 +12,7 @@ export interface ManageCollectionsColumnCallbacks {
   onExtend: (record: InformationCollectionRecord) => void;
   onCycles: (record: InformationCollectionRecord) => void;
   onModify: (record: InformationCollectionRecord) => void;
+  onNewVersion: (record: InformationCollectionRecord) => void;
   onClose: (record: InformationCollectionRecord) => void;
   onDuplicate: (record: InformationCollectionRecord) => void;
   onHistory: (record: InformationCollectionRecord) => void;
@@ -29,6 +30,7 @@ export const getManageCollectionsColumns = ({
   onExtend,
   onCycles,
   onModify,
+  onNewVersion,
   onClose,
   onDuplicate,
   onHistory,
@@ -129,7 +131,7 @@ export const getManageCollectionsColumns = ({
   {
     id: 'actions',
     header: 'Actions',
-    width: 'w-44',
+    width: 'w-56',
     cell: (r) => (
       <CollectionActionDropdown
         record={r}
@@ -140,6 +142,7 @@ export const getManageCollectionsColumns = ({
         onExtend={() => onExtend(r)}
         onCycles={() => onCycles(r)}
         onModify={() => onModify(r)}
+        onNewVersion={() => onNewVersion(r)}
         onClose={() => onClose(r)}
         onDuplicate={() => onDuplicate(r)}
         onHistory={() => onHistory(r)}

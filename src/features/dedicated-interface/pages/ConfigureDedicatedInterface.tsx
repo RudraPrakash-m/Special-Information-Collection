@@ -1,7 +1,7 @@
 /*  */import React, { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  ArrowRight,
+  Eye,
   Save,
   Copy,
   Check,
@@ -21,11 +21,11 @@ import FieldInfoTooltip from '@/features/create-collection/components/FieldInfoT
 import formFieldsJson from '../form-config/dedicatedInterfaceForm.json';
 import {
   type DedicatedInterfaceConfig,
-  INITIAL_INTERFACES,
+  getLinkStatus,
 } from '../types/dedicatedInterface.types';
-import { INITIAL_COLLECTIONS } from '@/features/manage-collections/types/manageCollections.types';
+import { useCollectionStore } from '@/features/collection-store/CollectionStore';
 import { toast } from 'sonner';
-import { getDedicatedInterfaceColumns } from '../columns/dedicatedInterfaceColumns';
+import { getDedicatedInterfaceColumns, LINK_STATUS_HINT } from '../columns/dedicatedInterfaceColumns';
 import { validateDedicatedInterface } from '../validation/dedicatedInterfaceValidation';
 
 const FIELD_TOOLTIPS: Record<string, { tooltip: string; example?: string }> = {
@@ -66,10 +66,7 @@ export const ConfigureDedicatedInterface: React.FC = () => {
   const initialCollectionParam = searchParams.get('collectionId');
 
   // Master collections
-  const [collections] = useState(INITIAL_COLLECTIONS);
-
-  // Interfaces list
-  const [interfaces, setInterfaces] = useState<DedicatedInterfaceConfig[]>(INITIAL_INTERFACES);
+  const { collections, interfaces, setInterfaces } = useCollectionStore();
 
   // Empty initial form state (NO dummy prefilled texts)
   const [editingInterfaceId, setEditingInterfaceId] = useState<string | null>(null);
@@ -189,35 +186,6 @@ export const ConfigureDedicatedInterface: React.FC = () => {
       toast.error(Object.values(valResult.errors)[0]);
       return false;
     }
-    const slugRegex = /^[a-z0-9-]+$/;
-    if (!slugRegex.test(formData.linkName)) {
-      toast.error(
-        '[E1] Invalid Link Name: Only lower-case letters, numbers and hyphens are allowed (no spaces or uppercase).'
-      );
-      return false;
-    }
-    // Check uniqueness across other collections
-    const isDuplicate = interfaces.some(
-      (item) =>
-        item.linkName.toLowerCase() === formData.linkName.trim().toLowerCase() &&
-        item.collectionId !== formData.collectionId
-    );
-    if (isDuplicate) {
-      toast.error(`[E1] Link Name "${formData.linkName}" is already in use by another collection.`);
-      return false;
-    }
-    if (!formData.pageHeading || !formData.pageHeading.trim()) {
-      toast.error('Page Heading is mandatory.');
-      return false;
-    }
-    if (formData.pageHeading.length > 200) {
-      toast.error('Page Heading maximum length is 200 characters.');
-      return false;
-    }
-    if (formData.instructions && formData.instructions.length > 2000) {
-      toast.error('Instructions maximum length is 2000 characters.');
-      return false;
-    }
     return true;
   };
 
@@ -246,7 +214,6 @@ export const ConfigureDedicatedInterface: React.FC = () => {
       downloadFileName: downloadName || undefined,
       helpdeskContact: formData.helpdeskContact.trim(),
       showAsDedicatedMenu: formData.showAsDedicatedMenu,
-      status: selectedCol?.status === 'Active' ? 'Active' : 'Draft',
       createdAt: new Date().toISOString().split('T')[0],
       updatedAt: new Date().toISOString().split('T')[0],
     };
@@ -256,49 +223,15 @@ export const ConfigureDedicatedInterface: React.FC = () => {
       return [newConfig, ...filtered];
     });
 
+    // Stay on the page with the saved interface open for editing.
+    setEditingInterfaceId(newConfig.id);
     toast.success(`Dedicated Interface for "${newConfig.collectionTitle}" saved successfully!`);
-    navigate('/information-collection/manage-collections');
   };
 
-  // Save draft
-  const handleSaveDraft = () => {
-    if (!formData.collectionId || !formData.linkName) {
-      toast.error('Please select a Collection and provide a Link Name to save as Draft.');
-      return;
-    }
-
-    const fullUrl = `https://himsplus.odisha.gov.in/portal/collection/${formData.linkName.trim()}`;
-    const selectedCol = collections.find((c) => c.id === formData.collectionId);
-
-    let downloadName = '';
-    if (typeof formData.downloads === 'string') {
-      downloadName = formData.downloads;
-    } else if (formData.downloads instanceof File) {
-      downloadName = formData.downloads.name;
-    }
-
-    const draftConfig: DedicatedInterfaceConfig = {
-      id: editingInterfaceId || `INTF-2026-${String(interfaces.length + 1).padStart(3, '0')}`,
-      collectionId: formData.collectionId,
-      collectionTitle: selectedCol?.collectionTitle || 'Information Collection',
-      linkName: formData.linkName.trim(),
-      dedicatedLink: fullUrl,
-      pageHeading: formData.pageHeading.trim(),
-      instructions: formData.instructions.trim(),
-      downloadFileName: downloadName || undefined,
-      helpdeskContact: formData.helpdeskContact.trim(),
-      showAsDedicatedMenu: formData.showAsDedicatedMenu,
-      status: 'Draft',
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0],
-    };
-
-    setInterfaces((prev) => {
-      const filtered = prev.filter((item) => item.collectionId !== formData.collectionId);
-      return [draftConfig, ...filtered];
-    });
-
-    toast.success('Interface draft saved successfully!');
+  // Preview the landing page in a new tab, so the form keeps its values
+  const handlePreview = () => {
+    if (!validateForm()) return;
+    window.open(`/portal/collection/${formData.linkName.trim()}?preview=true`, '_blank', 'noopener');
   };
 
   // Edit existing row from table
@@ -326,6 +259,9 @@ export const ConfigureDedicatedInterface: React.FC = () => {
     }
     toast.success('Interface configuration deleted.');
   };
+
+  // The dedicated link is active only after the selected collection is published
+  const linkStatus = getLinkStatus(collections.find((c) => c.id === formData.collectionId)?.status);
 
   // Collection options for SearchableSelect
   const collectionOptions = useMemo(() => {
@@ -438,6 +374,17 @@ export const ConfigureDedicatedInterface: React.FC = () => {
                     )}
                   </button>
                 </div>
+                {formData.collectionId && (
+                  <p
+                    className={`mt-1 text-[11px] ${
+                      linkStatus === 'Active'
+                        ? 'text-emerald-700 dark:text-emerald-400'
+                        : 'text-muted-foreground'
+                    }`}
+                  >
+                    {LINK_STATUS_HINT[linkStatus]}
+                  </p>
+                )}
               </div>
             );
           },
@@ -586,7 +533,7 @@ export const ConfigureDedicatedInterface: React.FC = () => {
 
       return field;
     });
-  }, [collectionOptions, formData.linkName, isCopied]);
+  }, [collectionOptions, formData.linkName, formData.collectionId, isCopied, linkStatus]);
 
   const tableColumns = useMemo(
     () =>
@@ -598,10 +545,11 @@ export const ConfigureDedicatedInterface: React.FC = () => {
           toast.success('Dedicated portal link copied to clipboard!');
         },
         onPreview: (linkName) => {
-          navigate(`/portal/collection/${linkName}`);
+          navigate(`/portal/collection/${linkName}?preview=true`);
         },
+        getCollectionStatus: (collectionId) => collections.find((c) => c.id === collectionId)?.status,
       }),
-    [navigate]
+    [navigate, collections]
   );
 
   return (
@@ -643,16 +591,15 @@ export const ConfigureDedicatedInterface: React.FC = () => {
           gridColumns={12}
         />
 
-        {/* Form Action Buttons: Inside the Card and Start Aligned */}
-        <div className="flex items-center justify-start gap-3 pt-5 border-t border-border mt-6">
+        {/* Form Action Buttons (SRS 1.3: Preview / Save): Inside the Card and Start Aligned */}
+        <div className="flex flex-wrap items-center justify-start gap-3 pt-5 border-t border-border mt-6">
           <Button
             type="button"
-            variant="warning"
-            leftIcon={Save}
-            className="!bg-[#f59f0a] hover:!bg-[#d97706] text-white border-none shadow-xs"
-            onClick={handleSaveDraft}
+            variant="outline"
+            leftIcon={Eye}
+            onClick={handlePreview}
           >
-            Save as Draft
+            Preview
           </Button>
 
           {editingInterfaceId && (
@@ -670,9 +617,9 @@ export const ConfigureDedicatedInterface: React.FC = () => {
             type="submit"
             form="dedicated-interface-form"
             variant="primary"
-            rightIcon={ArrowRight}
+            leftIcon={Save}
           >
-            {editingInterfaceId ? 'Update Interface' : 'Save & Next'}
+            {editingInterfaceId ? 'Update' : 'Save'}
           </Button>
         </div>
       </Card>

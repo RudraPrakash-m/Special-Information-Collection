@@ -10,6 +10,7 @@ export default defineConfig({
     watch: {
       ignored: ['**/*.zip'],
     },
+    port:5174,
   },
   resolve: {
     alias: {

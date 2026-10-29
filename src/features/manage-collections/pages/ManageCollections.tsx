@@ -5,17 +5,16 @@ import { toast } from 'sonner';
 import PageHeader from '@/shared/components/layout/PageHeader';
 import Card from '@/shared/components/layout/Card';
 import { Button, DataTable, FilterPanel, Modal, Tabs, type TabItem } from '@/shared/components/ui';
-import {
-  INITIAL_COLLECTIONS,
-  type InformationCollectionRecord,
-} from '../types/manageCollections.types';
+import type { InformationCollectionRecord } from '../types/manageCollections.types';
+import { useCollectionStore } from '@/features/collection-store/CollectionStore';
 import CollectionStatusBadge from '../components/CollectionStatusBadge';
 import { getManageCollectionsColumns } from '../columns/manageCollectionsColumns';
 import { validateExtendDeadline, validateCloseCollection } from '../validation/manageCollectionsValidation';
 
 export const ManageCollections: React.FC = () => {
   const navigate = useNavigate();
-  const [data, setData] = useState<InformationCollectionRecord[]>(INITIAL_COLLECTIONS);
+  // Shared with the other Information Collection pages
+  const { collections: data, setCollections: setData } = useCollectionStore();
   const [selectedCollection, setSelectedCollection] = useState<InformationCollectionRecord | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
@@ -267,6 +266,8 @@ export const ManageCollections: React.FC = () => {
         },
         onCycles: (r) => setCyclesModalItem(r),
         onModify: (r) => setModifyModalItem(r),
+        onNewVersion: (r) =>
+          toast.info(`New Question Version for "${r.collectionTitle}" will duplicate the linked survey for editing.`),
         onClose: (r) => setCloseModalItem(r),
         onDuplicate: (r) => handleDuplicate(r),
         onHistory: (r) => setHistoryModalItem(r),

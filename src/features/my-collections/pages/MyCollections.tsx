@@ -1,18 +1,20 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  AlertCircle,
-  CheckCircle2,
+  ArrowLeft,
   Send,
-  AlertTriangle,
   RotateCcw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/shared/components/layout/PageHeader';
 import Card from '@/shared/components/layout/Card';
-import { Button, DataTable, FilterPanel, Tabs, Modal, DialogModal, type TabItem } from '@/shared/components/ui';
+import { Alert, Button, DataTable, FilterPanel, Tabs, Modal, DialogModal, type TabItem } from '@/shared/components/ui';
+import { FormGenerator, SearchableSelect, type FormField } from '@/shared/components/ui/Forms';
+import FieldInfoTooltip from '../components/FieldInfoTooltip';
 import type { MyCollectionItem } from '../types/myCollections.types';
 import { getMyCollectionsColumns } from '../columns/myCollectionsColumns';
+import { getCorrectionHistoryColumns } from '../columns/correctionHistoryColumns';
+import correctSubmissionConfig from '../form-config/correctSubmissionForm.json';
 import { validateCorrectionSubmission } from '../validation/myCollectionsValidation';
 
 const INITIAL_MY_COLLECTIONS: MyCollectionItem[] = [
@@ -261,6 +263,91 @@ export const MyCollections: React.FC = () => {
     [navigate]
   );
 
+  // Correct Submission form: one field per answer (only highlighted ones editable) + Correction Remarks
+  const correctionFields = useMemo<FormField[]>(() => {
+    if (!selectedForCorrection) return [];
+    const answerFields = selectedForCorrection.answers.map((ans): FormField => {
+      const isEditable = ans.hasError || selectedForCorrection.allowFullEdit;
+      const notes = [
+        ans.ruleMessage && `Rule: ${ans.ruleMessage}`,
+        ans.verifierRemark && `Remark: ${ans.verifierRemark}`,
+      ]
+        .filter(Boolean)
+        .join(' · ');
+      const label = `${ans.questionCode}. ${ans.questionText}`;
+      const options =
+        ans.inputType === 'select'
+          ? (ans.options || ['Yes', 'No']).map((opt) => ({ label: opt, value: opt }))
+          : undefined;
+      const field: FormField = {
+        name: ans.questionId,
+        label,
+        type: ans.inputType,
+        options,
+        gridColumn: 3,
+        // Read-only answers: text / number as read-only fields, dropdowns disabled
+        readOnly: !isEditable && ans.inputType !== 'select',
+        disabled: !isEditable && ans.inputType === 'select',
+        ...(ans.hasError && {
+          required: true,
+          validation: { required: true, message: `Correct the answer to ${ans.questionCode}` },
+        }),
+      };
+
+      // Every question uses the consistent aligned renderer with synchronized label heights
+      return {
+        ...field,
+        render: (value, onChange, error) => (
+          <div className="col-span-12 sm:col-span-6 md:col-span-3 flex flex-col justify-end h-full">
+            <div className="min-h-[42px] flex items-end pb-1.5">
+              <FieldInfoTooltip
+                label={label}
+                required={ans.hasError}
+                tooltipText={notes || undefined}
+              />
+            </div>
+            <div className="w-full">
+              {ans.inputType === 'select' ? (
+                <SearchableSelect
+                  options={options}
+                  value={value ?? ''}
+                  onChange={onChange}
+                  disabled={!isEditable}
+                  error={error}
+                />
+              ) : (
+                <>
+                  <input
+                    type={ans.inputType === 'number' ? 'number' : 'text'}
+                    value={value ?? ''}
+                    readOnly={!isEditable}
+                    onChange={(e) => onChange(e.target.value)}
+                    className={`ui-field ${error ? 'ui-field--error' : ''} ${
+                      !isEditable ? 'bg-muted/20 cursor-not-allowed opacity-90' : ''
+                    }`}
+                  />
+                  {error && <p className="ui-error mt-1">{error}</p>}
+                </>
+              )}
+            </div>
+          </div>
+        ),
+      };
+    });
+    return [...answerFields, ...(correctSubmissionConfig as FormField[])];
+  }, [selectedForCorrection]);
+
+  const correctionDefaults = useMemo<Record<string, unknown>>(() => {
+    if (!selectedForCorrection) return {};
+    const values: Record<string, unknown> = { correctionRemarks: '' };
+    selectedForCorrection.answers.forEach((a) => {
+      values[a.questionId] = a.currentValue;
+    });
+    return values;
+  }, [selectedForCorrection]);
+
+  const historyColumns = useMemo(() => getCorrectionHistoryColumns(), []);
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       <PageHeader
@@ -274,169 +361,61 @@ export const MyCollections: React.FC = () => {
           title={`Correct Submission — ${selectedForCorrection.collectionTitle}`}
         >
           <div className="space-y-6">
-            {/* ALERT BANNER */}
-            <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
-              <AlertTriangle className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" size={18} />
-              <div className="space-y-1 text-xs">
-                <p className="font-bold text-amber-900 dark:text-amber-200">
-                  Submission Returned for Correction ({selectedForCorrection.correctionPeriodRemainingDays || 7} days remaining in correction period)
-                </p>
-                <p className="text-amber-800 dark:text-amber-300">
-                  {selectedForCorrection.verifierRemarks}
-                </p>
-                <p className="text-muted-foreground text-[11px]">
-                  Only highlighted answers needing correction are editable. Non-flagged answers remain read-only.
-                </p>
-              </div>
-            </div>
+            <Alert
+              tone="warning"
+              title={`Submission Returned for Correction (${selectedForCorrection.correctionPeriodRemainingDays || 7} days remaining in correction period)`}
+            >
+              <p>{selectedForCorrection.verifierRemarks}</p>
+              <p className="mt-1 text-xs opacity-80">
+                Only answers needing correction are editable. Other answers are read-only.
+              </p>
+            </Alert>
 
-            {/* QUESTIONS & ANSWERS SECTION */}
-            <div className="space-y-4">
+            {/* Answers (highlighted ones editable) + Correction Remarks */}
+            <div className="space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b pb-2">
                 Questions & Answers of the Submission
               </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {selectedForCorrection.answers.map((ans) => {
-                  const isEditable = ans.hasError || selectedForCorrection.allowFullEdit;
-                  return (
-                    <div
-                      key={ans.questionId}
-                      className={`p-4 rounded-xl border transition-all ${
-                        ans.hasError
-                          ? 'border-amber-400 bg-amber-50/30 dark:bg-amber-950/20 shadow-xs'
-                          : 'border-border bg-card'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-muted text-foreground">
-                          {ans.questionCode}
-                        </span>
-                        {ans.hasError ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
-                            <AlertCircle size={12} /> Correction Required
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
-                            <CheckCircle2 size={12} /> Verified
-                          </span>
-                        )}
-                      </div>
-
-                      <p className="text-xs font-medium text-foreground mb-3">{ans.questionText}</p>
-
-                      {/* EDITABLE VS READ-ONLY INPUT */}
-                      <div>
-                        {ans.inputType === 'select' ? (
-                          <select
-                            disabled={!isEditable}
-                            value={correctionAnswers[ans.questionId] ?? ans.currentValue}
-                            onChange={(e) =>
-                              setCorrectionAnswers({
-                                ...correctionAnswers,
-                                [ans.questionId]: e.target.value,
-                              })
-                            }
-                            className={`ui-field text-xs ${!isEditable ? 'bg-muted cursor-not-allowed opacity-80' : ''}`}
-                          >
-                            {(ans.options || ['Yes', 'No']).map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <input
-                            type={ans.inputType === 'number' ? 'number' : 'text'}
-                            disabled={!isEditable}
-                            value={correctionAnswers[ans.questionId] ?? ans.currentValue}
-                            onChange={(e) =>
-                              setCorrectionAnswers({
-                                ...correctionAnswers,
-                                [ans.questionId]:
-                                  ans.inputType === 'number' ? Number(e.target.value) : e.target.value,
-                              })
-                            }
-                            className={`ui-field text-xs ${!isEditable ? 'bg-muted cursor-not-allowed opacity-80' : ''}`}
-                          />
-                        )}
-                      </div>
-
-                      {/* REMARKS DISPLAY */}
-                      {ans.hasError && (
-                        <div className="mt-2.5 pt-2 border-t border-amber-200 dark:border-amber-900/60 text-[11px] space-y-1">
-                          {ans.ruleMessage && (
-                            <p className="text-red-700 dark:text-red-400 font-medium">
-                              Rule: {ans.ruleMessage}
-                            </p>
-                          )}
-                          {ans.verifierRemark && (
-                            <p className="text-amber-800 dark:text-amber-300">
-                              Verifier Note: {ans.verifierRemark}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* CORRECTION REMARKS */}
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-foreground block">
-                Institution's Remarks on Correction (Optional, maximum 1000 characters)
-              </label>
-              <textarea
-                rows={3}
-                value={correctionRemarks}
-                onChange={(e) => setCorrectionRemarks(e.target.value)}
-                placeholder="Explain the changes made in the submitted values for verification records..."
-                className="ui-field text-xs w-full"
-                maxLength={1000}
+              <FormGenerator
+                key={selectedForCorrection.id}
+                formId="correct-submission-form"
+                fields={correctionFields}
+                defaultValues={correctionDefaults}
+                onValuesChange={(values) => {
+                  const { correctionRemarks: remarks, ...answers } = values;
+                  setCorrectionRemarks(String(remarks ?? ''));
+                  setCorrectionAnswers(answers);
+                }}
+                onSubmit={() => setIsConfirmModalOpen(true)}
+                gridColumns={12}
               />
             </div>
 
-            {/* CORRECTION HISTORY TABLE */}
+            {/* Correction History */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              {/* <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Correction & Verification History
-              </h4>
-              <div className="overflow-x-auto rounded-lg border">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-muted text-muted-foreground font-semibold border-b">
-                    <tr>
-                      <th className="p-2.5">Version</th>
-                      <th className="p-2.5">Date</th>
-                      <th className="p-2.5">Actor</th>
-                      <th className="p-2.5">Status</th>
-                      <th className="p-2.5">Remarks</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {selectedForCorrection.history.map((h, i) => (
-                      <tr key={i}>
-                        <td className="p-2.5 font-bold">v{h.version}</td>
-                        <td className="p-2.5 text-muted-foreground">{h.date}</td>
-                        <td className="p-2.5 font-medium">{h.user}</td>
-                        <td className="p-2.5 font-semibold text-amber-700">{h.status}</td>
-                        <td className="p-2.5 text-muted-foreground">{h.remarks}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              </h4> */}
+              <Card
+              title="Correction & Verification History"
+              >
+
+                <DataTable
+                  caption="Correction History"
+                  data={selectedForCorrection.history}
+                  columns={historyColumns}
+                  rowKey={(h) => `${h.version}-${h.date}-${h.status}`}
+                  emptyTitle="No history yet"
+                />
+              </Card>
             </div>
 
             {/* ACTION BUTTON BAR: Inside Card at Bottom, Aligned Start */}
             <div className="flex items-center justify-start gap-3 pt-5 border-t border-border mt-6">
-              <Button
-                type="button"
-                variant="primary"
-                rightIcon={Send}
-                onClick={() => setIsConfirmModalOpen(true)}
-              >
+              <Button type="button" variant="outline" leftIcon={ArrowLeft} onClick={() => setSelectedForCorrection(null)}>
+                Back
+              </Button>
+              <Button type="submit" form="correct-submission-form" variant="primary" rightIcon={Send}>
                 Resubmit for Verification
               </Button>
             </div>
@@ -451,7 +430,7 @@ export const MyCollections: React.FC = () => {
             onHiddenChange={setIsFilterHidden}
             appliedCount={appliedFilterCount}
             floatingButton={false}
-            onSubmit={() => {}}
+            onSubmit={() => { }}
             actions={
               <Button
                 type="button"

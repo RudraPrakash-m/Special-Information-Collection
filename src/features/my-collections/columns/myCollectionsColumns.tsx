@@ -75,18 +75,22 @@ export const getMyCollectionsColumns = ({
         <ActionIcon
           tone="info"
           icon={ExternalLink}
-          label="Open Dedicated Portal"
+          label={r.dedicatedSlug ? 'Open Dedicated Portal' : 'Open Dedicated Portal (no dedicated link)'}
+          disabled={!r.dedicatedSlug}
           onClick={() => onOpen(r.dedicatedSlug)}
         />
 
-        {r.status === 'Returned for Correction' && (
-          <ActionIcon
-            tone="warning"
-            icon={FileEdit}
-            label="Correct Submission"
-            onClick={() => onCorrect(r)}
-          />
-        )}
+        <ActionIcon
+          tone="warning"
+          icon={FileEdit}
+          label={
+            r.status === 'Returned for Correction'
+              ? 'Correct Submission'
+              : 'Correct Submission (Returned for Correction only)'
+          }
+          disabled={r.status !== 'Returned for Correction'}
+          onClick={() => onCorrect(r)}
+        />
       </div>
     ),
   },

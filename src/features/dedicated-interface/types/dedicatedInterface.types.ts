@@ -1,3 +1,5 @@
+import type { CollectionStatus } from '@/features/manage-collections/types/manageCollections.types';
+
 export interface InterfaceDownloadItem {
   id: string;
   fileName: string;
@@ -20,10 +22,18 @@ export interface DedicatedInterfaceConfig {
   downloads?: InterfaceDownloadItem[];
   helpdeskContact: string;
   showAsDedicatedMenu: boolean;
-  status: 'Draft' | 'Active';
   createdAt: string;
   updatedAt: string;
 }
+
+export type LinkStatus = 'Active' | 'Inactive' | 'Closed';
+
+/** The dedicated link is active only after the collection is published (SRS 1.3); it follows the collection's status. */
+export const getLinkStatus = (collectionStatus?: CollectionStatus): LinkStatus => {
+  if (collectionStatus === 'Published' || collectionStatus === 'Active') return 'Active';
+  if (collectionStatus === 'Closed') return 'Closed';
+  return 'Inactive';
+};
 
 export const INITIAL_INTERFACES: DedicatedInterfaceConfig[] = [
   {
@@ -48,7 +58,6 @@ export const INITIAL_INTERFACES: DedicatedInterfaceConfig[] = [
     ],
     helpdeskContact: 'Dr. Sanjit Pattnaik | 0674-2391244 | nodal-hims@odisha.gov.in',
     showAsDedicatedMenu: true,
-    status: 'Active',
     createdAt: '2026-10-18',
     updatedAt: '2026-10-20',
   },
@@ -74,7 +83,6 @@ export const INITIAL_INTERFACES: DedicatedInterfaceConfig[] = [
     ],
     helpdeskContact: 'Sri Rakesh Kumar Sahoo | 0674-2395511 | mocollege@hed.gov.in',
     showAsDedicatedMenu: false,
-    status: 'Draft',
     createdAt: '2026-10-24',
     updatedAt: '2026-10-24',
   },

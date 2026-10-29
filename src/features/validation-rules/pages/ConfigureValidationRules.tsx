@@ -12,12 +12,24 @@ import {
 import PageHeader from '@/shared/components/layout/PageHeader';
 import Card from '@/shared/components/layout/Card';
 import { Button, DataTable } from '@/shared/components/ui';
-import { FormGenerator, SearchableSelect, type FormField } from '@/shared/components/ui/Forms';
+import { FormGenerator, type FormField } from '@/shared/components/ui/Forms';
 
-import {
-  INITIAL_COLLECTIONS,
-  type InformationCollectionRecord,
-} from '@/features/manage-collections/types/manageCollections.types';
+import { useCollectionStore } from '@/features/collection-store/CollectionStore';
+import type { CollectionType, Frequency } from '@/features/manage-collections/types/manageCollections.types';
+
+const COLLECTION_TYPE_LABELS: Record<CollectionType, string> = {
+  institution: 'Institution-specific',
+  scheme: 'Scheme-specific',
+  activity: 'Activity-specific',
+};
+
+const FREQUENCY_LABELS: Record<Frequency, string> = {
+  'one-time': 'One-time',
+  monthly: 'Monthly',
+  quarterly: 'Quarterly',
+  'half-yearly': 'Half-yearly',
+  yearly: 'Yearly',
+};
 
 import {
   MOCK_SURVEY_QUESTIONS,
@@ -37,7 +49,7 @@ export const ConfigureValidationRules: React.FC = () => {
   const urlCollectionId = searchParams.get('collectionId');
 
   // Master Collections
-  const [collections] = useState<InformationCollectionRecord[]>(INITIAL_COLLECTIONS);
+  const { collections } = useCollectionStore();
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>(
     urlCollectionId || collections[0]?.id || ''
   );
@@ -46,6 +58,37 @@ export const ConfigureValidationRules: React.FC = () => {
   const currentCollection = useMemo(() => {
     return collections.find((c) => c.id === selectedCollectionId) || collections[0] || null;
   }, [collections, selectedCollectionId]);
+
+  // Top section: collection selector + read-only details of the selected collection
+  const collectionContextFields = useMemo<FormField[]>(
+    () => [
+      {
+        name: 'collectionId',
+        label: 'Information Collection',
+        type: 'select',
+        placeholder: '- Search Collection -',
+        gridColumn: 3,
+        required: true,
+        options: collections.map((c) => ({ label: `${c.collectionTitle} (${c.id})`, value: c.id })),
+      },
+      { name: 'surveyTitle', label: 'Linked Data Capture Survey', type: 'text', gridColumn: 3, readOnly: true },
+      { name: 'collectionType', label: 'Collection Type', type: 'text', gridColumn: 3, readOnly: true },
+      { name: 'status', label: 'Collection Status', type: 'text', gridColumn: 3, readOnly: true },
+    ],
+    [collections]
+  );
+
+  const collectionContextValues = useMemo(
+    () => ({
+      collectionId: currentCollection?.id ?? '',
+      surveyTitle: currentCollection?.surveyTitle || 'No linked survey',
+      collectionType: currentCollection ? COLLECTION_TYPE_LABELS[currentCollection.collectionType] : '',
+      status: currentCollection
+        ? `${currentCollection.status} (${FREQUENCY_LABELS[currentCollection.frequency]})`
+        : '',
+    }),
+    [currentCollection]
+  );
 
   // Questions of the linked survey
   const surveyQuestions = useMemo<SurveyQuestion[]>(() => {
@@ -451,68 +494,19 @@ export const ConfigureValidationRules: React.FC = () => {
 
       {/* TOP CONTEXT BAR: Searchable Collection Selector & Linked Survey Preview */}
       <div className="p-4 rounded-xl border border-border bg-card shadow-xs">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
-          {/* Information Collection (SearchableSelect) */}
-          <div>
-            <SearchableSelect
-              label="Information Collection"
-              required={true}
-              options={collections.map((c) => ({
-                label: `${c.collectionTitle} (${c.id})`,
-                value: c.id,
-              }))}
-              value={selectedCollectionId}
-              onChange={(val) => {
-                setSelectedCollectionId(String(val));
-                handleResetForm();
-              }}
-              placeholder="- Search Collection -"
-            />
-          </div>
-
-          {/* Linked Survey (Read-only) */}
-          <div>
-            <label className="ui-label select-none">Linked Data Capture Survey</label>
-            <input
-              type="text"
-              readOnly
-              value={currentCollection?.surveyTitle || 'No linked survey'}
-              className="ui-field bg-amber-50/70 dark:bg-amber-950/30 border-amber-200/90 dark:border-amber-900/60 text-amber-900 dark:text-amber-200 font-medium text-xs cursor-not-allowed select-none truncate"
-              title={currentCollection?.surveyTitle}
-            />
-          </div>
-
-          {/* Collection Type (Read-only) */}
-          <div>
-            <label className="ui-label select-none">Collection Type</label>
-            <input
-              type="text"
-              readOnly
-              value={`${currentCollection?.collectionType?.toUpperCase()}-SPECIFIC`}
-              className="ui-field bg-amber-50/70 dark:bg-amber-950/30 border-amber-200/90 dark:border-amber-900/60 text-amber-900 dark:text-amber-200 font-medium text-xs cursor-not-allowed select-none"
-            />
-          </div>
-
-          {/* Collection Status */}
-          <div>
-            <label className="ui-label select-none">Collection Status</label>
-            <div className="h-[calc(var(--control-h)*0.9)] px-3 rounded-md border border-border bg-muted/20 flex items-center gap-2">
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  currentCollection?.status === 'Active'
-                    ? 'bg-emerald-500 ring-2 ring-emerald-200'
-                    : 'bg-amber-500 ring-2 ring-amber-200'
-                }`}
-              />
-              <span className="text-xs font-bold text-foreground">
-                {currentCollection?.status || 'Draft'}
-              </span>
-              <span className="text-[11px] text-muted-foreground ml-auto">
-                {currentCollection?.frequency}
-              </span>
-            </div>
-          </div>
-        </div>
+        <FormGenerator
+          formId="validation-rules-collection-form"
+          fields={collectionContextFields}
+          defaultValues={collectionContextValues}
+          onValuesChange={(values) => {
+            if (values.collectionId && values.collectionId !== selectedCollectionId) {
+              setSelectedCollectionId(String(values.collectionId));
+              handleResetForm();
+            }
+          }}
+          onSubmit={() => undefined}
+          gridColumns={12}
+        />
       </div>
 
       {/* MAIN UNIFIED CARD: Reusable Form with FormGenerator (Searchable Selects) */}
